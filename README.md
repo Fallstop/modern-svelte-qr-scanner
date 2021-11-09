@@ -1,0 +1,1 @@
+modern-svelte-qr-scanner
