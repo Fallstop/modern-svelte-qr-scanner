@@ -1,0 +1,27 @@
+{
+  "name": "svelte-qr-scanner",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "svelte-kit dev",
+    "build": "svelte-kit package",
+    "package": "svelte-kit package",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch"
+  },
+  "devDependencies": {
+    "@sveltejs/kit": "next",
+    "events": "^3.3.0",
+    "fsm-as-promised": "^0.17.0",
+    "stampit": "^4.3.2",
+    "svelte": "^3.42.6",
+    "svelte-check": "^2.2.6",
+    "svelte-preprocess": "^4.9.4",
+    "tslib": "^2.3.1",
+    "typescript": "^4.4.3",
+    "visibilityjs": "^2.0.2"
+  },
+  "type": "module",
+  "dependencies": {
+    "svelte2tsx": "^0.4.8"
+  }
+}
