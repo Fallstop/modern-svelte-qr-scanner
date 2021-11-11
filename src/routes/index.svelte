@@ -1,5 +1,6 @@
 <script lang="ts">
     import QR from "$lib/index";
+    import "../global.scss"
 
     function onQRScan(event: CustomEvent) {
         console.log(event)

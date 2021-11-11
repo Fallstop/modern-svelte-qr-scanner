@@ -13,12 +13,14 @@ class MediaError extends Error {
 
 export class Camera {
   id: any;
-  name: any;
+  name: string;
+  aspectRatio: number;
   _stream: any;
 
   constructor(id, name) {
     this.id = id;
     this.name = name;
+    this.aspectRatio = 1.6;
     this._stream = null;
   }
 
@@ -30,7 +32,7 @@ export class Camera {
           sourceId: this.id,
           minWidth: 600,
           maxWidth: 800,
-          minAspectRatio: 1.6
+          minAspectRatio: this.aspectRatio
         },
         optional: []
       }
