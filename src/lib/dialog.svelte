@@ -1,5 +1,6 @@
 <script lang="ts">
 import { createEventDispatcher } from "svelte";
+import { fly, fade } from 'svelte/transition';
 
 import type { Camera } from "./instascan/camera";
 
@@ -18,8 +19,8 @@ import type { Camera } from "./instascan/camera";
 
 </script>
 
-<div class="dialog-container">
-    <div class="dialog-content">
+<div class="dialog-container" transition:fade>
+    <div class="dialog-content" transition:fly={{ y: 200, duration: 500 }}>
         <h3>Select a camera</h3>
         {#each camerasAvailable as camera}
             <button class="camera-container" on:click={cameraSelectCallback(camera.id)}>{camera.name}</button>

@@ -145,7 +145,7 @@
 		</button>
 	{/if}
 	{#if displayCameraSelectionDialog}
-		<Dialog bind:camerasAvailable on:camera={cameraSelect} />
+		<Dialog bind:camerasAvailable on:camera={cameraSelect}/>
 	{/if}
 
 	{#if !scannerInitialized}
