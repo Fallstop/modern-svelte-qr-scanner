@@ -203,7 +203,6 @@ export class Scanner extends EventEmitter {
 
     this._scanner = new ScanProvider(this, this._analyzer, captureImage, scanPeriod, refractoryPeriod);
     console.log('asdasd')
-    this._createStateMachine().then((x) => { this._fsm = x;console.log("asdasdsss",x) })
 
     Visibility.change((e, state) => {
       if (state === 'visible') {
@@ -237,6 +236,7 @@ export class Scanner extends EventEmitter {
   }
 
   async start(camera = null) {
+    this._fsm = await this._createStateMachine();
     if (this._fsm.can('start')) {
       await this._fsm.start(camera);
     } else {

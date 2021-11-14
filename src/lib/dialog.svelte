@@ -1,7 +1,8 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { fly, fade } from "svelte/transition";
-    import {clickOutside} from './util';
+    import {clickOutside} from '$lib/util';
+    import {detectMobileCameras, CameraDirection, cameraDirectionGuess} from "$lib/cameraSelection"
 
     import type { Camera } from "./instascan/camera";
 
@@ -21,6 +22,19 @@
         });
     }
 
+    function getUserCameraList(camerasAvailable: Camera[]) {
+        if (detectMobileCameras(camerasAvailable)) {
+            return camerasAvailable.map(camera=>({
+                "name": cameraDirectionGuess(camera)===CameraDirection.Front ? "Front Camera" : "Back Camera",
+                "id": camera.id
+            }))
+        } else {
+            return camerasAvailable
+        }
+    }
+
+    $: camerasUserList = getUserCameraList(camerasAvailable)
+
     function closeDialog() {
         displayCameraSelectionDialog = false;
     }
@@ -34,7 +48,7 @@
             use:clickOutside on:click_outside={closeDialog}
         >
             <h3>Select a camera</h3>
-            {#each camerasAvailable as camera}
+            {#each camerasUserList as camera}
                 <button
                     class="camera-container"
                     on:click={cameraSelectCallback(camera.id)}

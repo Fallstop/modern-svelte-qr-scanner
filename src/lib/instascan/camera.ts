@@ -17,10 +17,10 @@ export class Camera {
   aspectRatio: number;
   _stream: any;
 
-  constructor(id, name) {
+  constructor(id, name, aspectRatio) {
     this.id = id;
     this.name = name;
-    this.aspectRatio = 1.6;
+    this.aspectRatio = 1;
     this._stream = null;
   }
 
@@ -31,7 +31,7 @@ export class Camera {
         mandatory: {
           sourceId: this.id,
           minWidth: 600,
-          maxWidth: 800,
+          maxWidth: 1920,
           minAspectRatio: this.aspectRatio
         },
         optional: []

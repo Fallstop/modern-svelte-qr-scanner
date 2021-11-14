@@ -8,7 +8,8 @@
 	import { saveValue, getValue } from "$lib/store";
 	import { chooseCamera } from "$lib/cameraSelection";
 	import type { Camera } from "./instascan/camera";
-import { writable } from "svelte/store";
+	import { writable } from "svelte/store";
+import { Scanner } from "./instascan/scanner";
 
 	const dispatch = createEventDispatcher();
 
@@ -19,10 +20,6 @@ import { writable } from "svelte/store";
 	// Whether to scan continuously for QR codes. If false, use scanner.scan() to manually scan.
 	// If true, the scanner emits the "scan" event when a QR code is scanned. Default true.
 	export let continuous = true;
-
-	// Whether to horizontally mirror the video preview. This is helpful when trying to
-	// scan a QR code with a user-facing camera. Default true.
-	export let mirror = true;
 
 	// Whether to include the scanned image data as part of the scan result. See the "scan" event
 	// for image format details. Default false.
@@ -50,6 +47,9 @@ import { writable } from "svelte/store";
 
 	let scanner;
 
+	let cameraVideoWidth = 0;
+	let cameraVideoHeight = 0;
+
 	async function cameraStart() {
 		const camerasPermState = (
 			await navigator?.permissions?.query({ name: "geolocation" })
@@ -58,45 +58,42 @@ import { writable } from "svelte/store";
 		console.log("sate:", camerasPermState);
 		if (browser && camerasPermState) {
 			const { Instascan } = await import("./instascan/index");
-			scanner = new Instascan.Scanner({
-				video: document.getElementById("cam-preview"),
-				continuous,
-				mirror,
-				captureImage,
-				backgroundScan,
-				refractoryPeriod,
-				scanPeriod,
-			});
-			scanner.addListener("scan", function (qrContent: string) {
-				console.log("Scanned QR Code");
-				dispatch("scan", {
-					qrContent,
+			camerasAvailable = await Instascan.Camera.getCameras();
+			if (camerasAvailable.length > 0) {
+				camerasInitialized = true;
+				let [chosenCamera, mirror] = chooseCamera(
+					camerasAvailable,
+					selectedCameraID
+				);
+				saveValue("selectedCameraID", selectedCameraID);
+				chosenCamera.aspectRatio = cameraAspectRatio;
+				console.log("aspect ratio", chosenCamera);
+				scanner = new Instascan.Scanner({
+					video: document.getElementById("cam-preview"),
+					continuous,
+					mirror,
+					captureImage,
+					backgroundScan,
+					refractoryPeriod,
+					scanPeriod,
 				});
-			});
-			scanner.addListener("active", function () {
-				console.log("Started QR Code Scanner");
-				scannerInitialized = true;
-			});
-			Instascan.Camera.getCameras()
-				.then(function (cameras) {
-					camerasAvailable = cameras;
-					if (cameras.length > 0) {
-						camerasInitialized = true;
-						let chosenCamera = chooseCamera(
-							cameras,
-							selectedCameraID
-						);
-						saveValue("selectedCameraID", selectedCameraID);
-						chosenCamera.aspectRatio = cameraAspectRatio;
-						scanner.start(chosenCamera);
-					} else {
-						camerasInitialized = false;
-						console.error("No cameras found.");
-					}
-				})
-				.catch(function (e) {
-					console.error(e);
+				scanner.addListener("scan", function (qrContent: string) {
+					console.log("Scanned QR Code");
+					dispatch("scan", {
+						qrContent,
+					});
 				});
+				scanner.addListener("active", function () {
+					console.log("Started QR Code Scanner");
+					scannerInitialized = true;
+				});
+				let stream = await scanner.start(chosenCamera);
+				console.log("Scanner Started",stream);
+
+			} else {
+				camerasInitialized = false;
+				console.error("No cameras found.");
+			}
 		}
 	}
 
@@ -105,7 +102,9 @@ import { writable } from "svelte/store";
 	}
 
 	onMount(() => {
-		cameraStart();
+		if (browser) {
+			cameraStart();
+		}
 	});
 
 	function onSettingsClick() {
@@ -121,9 +120,12 @@ import { writable } from "svelte/store";
 	}
 </script>
 
-<div class="video-container" style={`--previewWidth:${previewWidth_px}px;--previewHeight:${previewHeight_px}px;`}>
+<div
+	class="video-container"
+	style={`--previewWidth:${previewWidth_px}px;--previewHeight:${previewHeight_px}px;`}
+>
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video id="cam-preview" hidden={!scannerInitialized}>asd</video>
+	<video id="cam-preview" hidden={!scannerInitialized} style={previewWidth_px > previewHeight_px ? "width: var(--previewWidth);" : "height: var(--previewHeight);"}/>
 	{#if scannerInitialized}
 		<button class="floating-action-button" on:click={onSettingsClick}>
 			<svg
@@ -162,11 +164,10 @@ import { writable } from "svelte/store";
 		position: relative;
 		width: var(--previewWidth);
 		height: var(--previewHeight);
+		overflow: hidden;
 
 		#cam-preview {
 			background-color: grey;
-			width: var(--previewWidth);
-			height: var(--previewHeight);
 		}
 		.floating-action-button {
 			position: absolute;
