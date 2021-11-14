@@ -7,7 +7,7 @@
         alert(event.detail.qrContent)
     }
 </script>
-<QR on:scan={onQRScan}>
+<QR on:scan={onQRScan} >
     <div slot="loading">
         yeet
     </div>

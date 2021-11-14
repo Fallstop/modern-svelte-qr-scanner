@@ -1,10 +1,15 @@
 <script lang="ts">
-	import Dialog from "./dialog.svelte";
-
 	import { onMount } from "svelte";
 	import { browser } from "$app/env";
 	import { createEventDispatcher } from "svelte";
+
+	import Dialog from "./dialog.svelte";
+
+	import { saveValue, getValue } from "$lib/store";
+	import { chooseCamera } from "$lib/cameraSelection";
 	import type { Camera } from "./instascan/camera";
+import { writable } from "svelte/store";
+
 	const dispatch = createEventDispatcher();
 
 	export let scannerInitialized = false;
@@ -35,10 +40,13 @@
 	// increases CPU usage but makes scan response faster. Default 1 (i.e. analyze every frame).
 	export let scanPeriod = 1;
 
+	export let previewWidth_px = 800;
+	export let previewHeight_px = 450;
+
 	let displayCameraSelectionDialog = false;
 
 	let camerasAvailable: Camera[] = [];
-	let selectedCameraID: string;
+	let selectedCameraID: string = getValue("selectedCameraID");
 
 	let scanner;
 
@@ -46,6 +54,7 @@
 		const camerasPermState = (
 			await navigator?.permissions?.query({ name: "geolocation" })
 		)?.state;
+
 		console.log("sate:", camerasPermState);
 		if (browser && camerasPermState) {
 			const { Instascan } = await import("./instascan/index");
@@ -73,24 +82,11 @@
 					camerasAvailable = cameras;
 					if (cameras.length > 0) {
 						camerasInitialized = true;
-						console.log(cameras);
-						let chosenCamera;
-						if (typeof selectedCameraID==="undefined") {
-							chosenCamera = cameras[0];
-							console.log("Camera not selected, choosing default")
-						} else {
-							cameras.forEach(camera => {
-								if (camera.id === selectedCameraID) {
-									chosenCamera = camera
-									console.log("Found camera",camera.id)
-								}
-							});
-							if (typeof chosenCamera === "undefined") {
-								chosenCamera = cameras[0];
-								console.log("failed to find camera")
-							}
-						}
-						selectedCameraID = chosenCamera.id;
+						let chosenCamera = chooseCamera(
+							cameras,
+							selectedCameraID
+						);
+						saveValue("selectedCameraID", selectedCameraID);
 						chosenCamera.aspectRatio = cameraAspectRatio;
 						scanner.start(chosenCamera);
 					} else {
@@ -105,29 +101,29 @@
 	}
 
 	function cameraStop() {
-		scanner.stop()
+		scanner.stop();
 	}
 
 	onMount(() => {
-		cameraStart()
+		cameraStart();
 	});
 
 	function onSettingsClick() {
-		displayCameraSelectionDialog = !displayCameraSelectionDialog;
+		displayCameraSelectionDialog = true;
 	}
 
 	function cameraSelect(event: CustomEvent) {
-		cameraStop()
-		cameraStart()
+		cameraStop();
+		cameraStart();
 		selectedCameraID = event.detail.id;
-		
+		saveValue("selectedCameraID", selectedCameraID);
+		displayCameraSelectionDialog = false;
 	}
 </script>
 
-<div class="video-container">
+<div class="video-container" style={`--previewWidth:${previewWidth_px}px;--previewHeight:${previewHeight_px}px;`}>
 	<!-- svelte-ignore a11y-media-has-caption -->
-
-	<video id="cam-preview" hidden={!scannerInitialized} />
+	<video id="cam-preview" hidden={!scannerInitialized}>asd</video>
 	{#if scannerInitialized}
 		<button class="floating-action-button" on:click={onSettingsClick}>
 			<svg
@@ -144,9 +140,12 @@
 			</svg>
 		</button>
 	{/if}
-	{#if displayCameraSelectionDialog}
-		<Dialog bind:camerasAvailable on:camera={cameraSelect}/>
-	{/if}
+
+	<Dialog
+		bind:camerasAvailable
+		bind:displayCameraSelectionDialog
+		on:camera={cameraSelect}
+	/>
 
 	{#if !scannerInitialized}
 		<slot name="loading" />
@@ -161,8 +160,14 @@
 		height: min-content;
 		box-sizing: border-box;
 		position: relative;
-		// #cam-preview {
-		// }
+		width: var(--previewWidth);
+		height: var(--previewHeight);
+
+		#cam-preview {
+			background-color: grey;
+			width: var(--previewWidth);
+			height: var(--previewHeight);
+		}
 		.floating-action-button {
 			position: absolute;
 			right: 5%;

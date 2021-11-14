@@ -1,32 +1,49 @@
 <script lang="ts">
-import { createEventDispatcher } from "svelte";
-import { fly, fade } from 'svelte/transition';
+    import { createEventDispatcher } from "svelte";
+    import { fly, fade } from "svelte/transition";
+    import {clickOutside} from './util';
 
-import type { Camera } from "./instascan/camera";
+    import type { Camera } from "./instascan/camera";
 
     const dispatch = createEventDispatcher();
 
     export let camerasAvailable: Camera[];
 
-    const cameraSelectCallback: CallableFunction = (id: string) => cameraSelect(id);
+    export let displayCameraSelectionDialog: boolean;
+
+    const cameraSelectCallback: CallableFunction = (id: string) =>
+        cameraSelect(id);
 
     function cameraSelect(id) {
-        console.log(id)
+        console.log(id);
         dispatch("camera", {
             id,
         });
     }
 
+    function closeDialog() {
+        displayCameraSelectionDialog = false;
+    }
 </script>
 
-<div class="dialog-container" transition:fade>
-    <div class="dialog-content" transition:fly={{ y: 200, duration: 500 }}>
-        <h3>Select a camera</h3>
-        {#each camerasAvailable as camera}
-            <button class="camera-container" on:click={cameraSelectCallback(camera.id)}>{camera.name}</button>
-        {/each}
+{#if displayCameraSelectionDialog}
+    <div class="dialog-container" transition:fade>
+        <div
+            class="dialog-content"
+            transition:fly={{ y: 200, duration: 500 }}
+            use:clickOutside on:click_outside={closeDialog}
+        >
+            <h3>Select a camera</h3>
+            {#each camerasAvailable as camera}
+                <button
+                    class="camera-container"
+                    on:click={cameraSelectCallback(camera.id)}
+                    >{camera.name}</button
+                >
+            {/each}
+        </div>
     </div>
-</div>
+{/if}
 
 <style lang="scss">
     .dialog-container {
