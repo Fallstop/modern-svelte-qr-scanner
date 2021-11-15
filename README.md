@@ -10,8 +10,8 @@ This is based on `instascan`, and is designed as a more batteries included versi
 Just open your project and use the command line to install:
 
 ```bash
-yarn add svelte-range-slider-pips -D             # if you are using yarn
-npm install svelte-range-slider-pips --save-dev  # if you are using npm
+yarn add modern-svelte-qr-scanner -D             # if you are using yarn
+npm install modern-svelte-qr-scanner --save-dev  # if you are using npm
 ```
 
 ## Usage
