@@ -1,10 +1,13 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { fly, fade } from "svelte/transition";
+    import Select from 'svelte-select';
+
+
     import {clickOutside} from '$lib/util';
     import {detectMobileCameras, CameraDirection, cameraDirectionGuess} from "$lib/cameraSelection"
 
-    import type { Camera } from "./instascan/camera";
+    import type { Camera } from "$lib/instascan/camera";
 
     const dispatch = createEventDispatcher();
 
@@ -12,11 +15,15 @@
 
     export let displayCameraSelectionDialog: boolean;
 
+    export let chosenCamera: Camera;
+
+
+
     const cameraSelectCallback: CallableFunction = (id: string) =>
         cameraSelect(id);
 
-    function cameraSelect(id) {
-        console.log(id);
+    function cameraSelect(event) {
+        let id = event.detail.value
         dispatch("camera", {
             id,
         });
@@ -25,19 +32,25 @@
     function getUserCameraList(camerasAvailable: Camera[]) {
         if (detectMobileCameras(camerasAvailable)) {
             return camerasAvailable.map(camera=>({
-                "name": cameraDirectionGuess(camera)===CameraDirection.Front ? "Front Camera" : "Back Camera",
-                "id": camera.id
+                "label": cameraDirectionGuess(camera)===CameraDirection.Front ? "Front Camera" : "Back Camera",
+                "value": camera.id
             }))
         } else {
-            return camerasAvailable
+            return camerasAvailable.map(camera=>({
+                "label": camera.name,
+                "value": camera.id
+            }))
         }
     }
-
-    $: camerasUserList = getUserCameraList(camerasAvailable)
 
     function closeDialog() {
         displayCameraSelectionDialog = false;
     }
+
+    $: selectedCamera = {
+		"value": chosenCamera?.id,
+		"label": chosenCamera?.name
+	}
 </script>
 
 {#if displayCameraSelectionDialog}
@@ -48,13 +61,7 @@
             use:clickOutside on:click_outside={closeDialog}
         >
             <h3>Select a camera</h3>
-            {#each camerasUserList as camera}
-                <button
-                    class="camera-container"
-                    on:click={cameraSelectCallback(camera.id)}
-                    >{camera.name}</button
-                >
-            {/each}
+            <Select items={getUserCameraList(camerasAvailable)} value={selectedCamera} on:select={cameraSelect}></Select>
         </div>
     </div>
 {/if}
@@ -74,7 +81,7 @@
             background-color: white;
             padding: 0.5em 1em;
             border-radius: 1rem;
-
+            width: 50%;
             h3 {
                 margin: 0 0.2rem 0;
                 font-size: 1.2rem;

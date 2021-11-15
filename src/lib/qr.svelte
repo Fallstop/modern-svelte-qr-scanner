@@ -1,29 +1,29 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { browser } from "$app/env";
+	import { fade } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
 
 	import Dialog from "./dialog.svelte";
 
 	import { saveValue, getValue } from "$lib/store";
 	import { chooseCamera } from "$lib/cameraSelection";
-	import type { Camera } from "./instascan/camera";
-	import { writable } from "svelte/store";
-import { Scanner } from "./instascan/scanner";
+	import { Camera, mediaErrorCallback } from "./instascan/camera";
+	import {mediaErrorToMessage} from "$lib/mapErrorToHumanMessage"
 
 	const dispatch = createEventDispatcher();
 
 	export let scannerInitialized = false;
-	export let cameraAspectRatio = 1.6;
-	let camerasInitialized: boolean = null;
+	let cameraAspectRatio = 1.6;
+	let camerasInitialized: boolean = false;
 
 	// Whether to scan continuously for QR codes. If false, use scanner.scan() to manually scan.
 	// If true, the scanner emits the "scan" event when a QR code is scanned. Default true.
-	export let continuous = true;
+	let continuous = true;
 
 	// Whether to include the scanned image data as part of the scan result. See the "scan" event
 	// for image format details. Default false.
-	export let captureImage = false;
+	let captureImage = false;
 
 	// Only applies to continuous mode. Whether to actively scan when the tab is not active.
 	// When false, this reduces CPU usage when the tab is not active. Default true.
@@ -34,11 +34,13 @@ import { Scanner } from "./instascan/scanner";
 	export let refractoryPeriod = 5000;
 
 	// Only applies to continuous mode. The period, in rendered frames, between scans. A lower scan period
-	// increases CPU usage but makes scan response faster. Default 1 (i.e. analyze every frame).
+	//  increases CPU usage but makes scan response faster. Default 1 (i.e. analyze every frame).
 	export let scanPeriod = 1;
 
 	export let previewWidth_px = 800;
 	export let previewHeight_px = 450;
+
+	export let mediaErrorMessage = "";
 
 	let displayCameraSelectionDialog = false;
 
@@ -50,6 +52,9 @@ import { Scanner } from "./instascan/scanner";
 	let cameraVideoWidth = 0;
 	let cameraVideoHeight = 0;
 
+	let chosenCamera: Camera;
+	let mirror: boolean;
+
 	async function cameraStart() {
 		const camerasPermState = (
 			await navigator?.permissions?.query({ name: "geolocation" })
@@ -58,16 +63,19 @@ import { Scanner } from "./instascan/scanner";
 		console.log("sate:", camerasPermState);
 		if (browser && camerasPermState) {
 			const { Instascan } = await import("./instascan/index");
+			Instascan.Camera.setMediaErrorCallback(createMediaError);
 			camerasAvailable = await Instascan.Camera.getCameras();
 			if (camerasAvailable.length > 0) {
+				// When permissions are denied, it creates a fake camera
+				if (camerasAvailable[0].name === null) {
+					return
+				}
 				camerasInitialized = true;
-				let [chosenCamera, mirror] = chooseCamera(
+				[chosenCamera, mirror] = chooseCamera(
 					camerasAvailable,
 					selectedCameraID
 				);
-				saveValue("selectedCameraID", selectedCameraID);
 				chosenCamera.aspectRatio = cameraAspectRatio;
-				console.log("aspect ratio", chosenCamera);
 				scanner = new Instascan.Scanner({
 					video: document.getElementById("cam-preview"),
 					continuous,
@@ -84,12 +92,9 @@ import { Scanner } from "./instascan/scanner";
 					});
 				});
 				scanner.addListener("active", function () {
-					console.log("Started QR Code Scanner");
 					scannerInitialized = true;
 				});
 				let stream = await scanner.start(chosenCamera);
-				console.log("Scanner Started",stream);
-
 			} else {
 				camerasInitialized = false;
 				console.error("No cameras found.");
@@ -118,6 +123,12 @@ import { Scanner } from "./instascan/scanner";
 		saveValue("selectedCameraID", selectedCameraID);
 		displayCameraSelectionDialog = false;
 	}
+
+	function createMediaError(err) {
+		mediaErrorMessage = mediaErrorToMessage(err);
+		camerasInitialized = false;
+		scannerInitialized = true;
+	}
 </script>
 
 <div
@@ -125,7 +136,13 @@ import { Scanner } from "./instascan/scanner";
 	style={`--previewWidth:${previewWidth_px}px;--previewHeight:${previewHeight_px}px;`}
 >
 	<!-- svelte-ignore a11y-media-has-caption -->
-	<video id="cam-preview" hidden={!scannerInitialized} style={previewWidth_px > previewHeight_px ? "width: var(--previewWidth);" : "height: var(--previewHeight);"}/>
+	<video
+		id="cam-preview"
+		hidden={!scannerInitialized || !camerasInitialized}
+		style={previewWidth_px > previewHeight_px
+			? "width: var(--previewWidth);"
+			: "height: var(--previewHeight);"}
+	/>
 	{#if scannerInitialized}
 		<button class="floating-action-button" on:click={onSettingsClick}>
 			<svg
@@ -147,12 +164,17 @@ import { Scanner } from "./instascan/scanner";
 		bind:camerasAvailable
 		bind:displayCameraSelectionDialog
 		on:camera={cameraSelect}
+		bind:chosenCamera
 	/>
 
 	{#if !scannerInitialized}
-		<slot name="loading" />
-	{:else if camerasInitialized === false}
-		<slot name="failedToInitialize" />
+		<div transition:fade class="transition-wrapper">
+			<slot name="loading" />
+		</div>
+	{:else if !camerasInitialized}
+		<div transition:fade class="transition-wrapper">
+			<slot name="failedToInitialize" />
+		</div>
 	{/if}
 </div>
 
@@ -167,7 +189,7 @@ import { Scanner } from "./instascan/scanner";
 		overflow: hidden;
 
 		#cam-preview {
-			background-color: grey;
+			background: #222222;
 		}
 		.floating-action-button {
 			position: absolute;
@@ -181,6 +203,10 @@ import { Scanner } from "./instascan/scanner";
 				color: rgba(255, 255, 255, 0.8);
 				filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.5));
 			}
+		}
+		.transition-wrapper {
+			height: 100%;
+			width: 100%;
 		}
 	}
 </style>

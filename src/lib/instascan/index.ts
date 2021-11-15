@@ -1,8 +1,9 @@
 import { Scanner } from "./scanner";
-import { Camera } from "./camera";
+import { Camera,MediaError } from "./camera";
 
 
 export const Instascan = {
     Scanner: Scanner,
-    Camera: Camera
+    Camera: Camera,
+    MediaError: MediaError
 };

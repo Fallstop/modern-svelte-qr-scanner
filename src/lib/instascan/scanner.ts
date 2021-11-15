@@ -202,7 +202,6 @@ export class Scanner extends EventEmitter {
     let refractoryPeriod = opts.refractoryPeriod || (5 * 1000);
 
     this._scanner = new ScanProvider(this, this._analyzer, captureImage, scanPeriod, refractoryPeriod);
-    console.log('asdasd')
 
     Visibility.change((e, state) => {
       if (state === 'visible') {

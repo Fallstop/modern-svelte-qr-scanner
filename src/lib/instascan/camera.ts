@@ -1,9 +1,12 @@
+export let mediaErrorCallback: CallableFunction = null;
+
+
 function cameraName(label) {
   let clean = label.replace(/\s*\([0-9a-f]+(:[0-9a-f]+)?\)\s*$/, '');
   return clean || label || null;
 }
 
-class MediaError extends Error {
+export class MediaError extends Error {
   type: any;
   constructor(type) {
     super(`Cannot access video stream (${type}).`);
@@ -17,7 +20,7 @@ export class Camera {
   aspectRatio: number;
   _stream: any;
 
-  constructor(id, name, aspectRatio) {
+  constructor(id, name) {
     this.id = id;
     this.name = name;
     this.aspectRatio = 1;
@@ -72,9 +75,11 @@ export class Camera {
         for (let stream of access.getVideoTracks()) {
           stream.stop();
         }
-        
-
     });
+  }
+  
+  static setMediaErrorCallback(callback: CallableFunction) {
+    mediaErrorCallback = callback
   }
 
   static async _wrapErrors(fn) {
@@ -82,7 +87,12 @@ export class Camera {
       return await fn();
     } catch (e) {
       if (e.name) {
-        throw new MediaError(e.name);
+        if (mediaErrorCallback !== null) {
+          mediaErrorCallback(new MediaError(e.name))
+        } else {
+          console.log("Media Error Callback not found");
+          throw new MediaError(e.name);
+        }
       } else {
         throw e;
       }
