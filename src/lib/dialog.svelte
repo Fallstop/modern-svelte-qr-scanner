@@ -76,12 +76,13 @@
         background-color: rgba(0, 0, 0, 0.363);
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start;
         .dialog-content {
             background-color: white;
             padding: 0.5em 1em;
             border-radius: 1rem;
             width: 50%;
+            margin-top: 2em;
             h3 {
                 margin: 0 0.2rem 0;
                 font-size: 1.2rem;

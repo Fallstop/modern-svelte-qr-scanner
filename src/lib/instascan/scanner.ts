@@ -1,7 +1,7 @@
 import ZXingModule from './zxing';
 const ZXing = ZXingModule();
 import Visibility from 'visibilityjs';
-import EventEmitter from 'events'
+import {EventEmitter} from 'events'
 import StateMachine from "../fsm-as-promised/index"
 
 class ScanProvider {
