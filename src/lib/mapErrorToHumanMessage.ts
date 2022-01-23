@@ -5,6 +5,8 @@ export function mediaErrorToMessage(err: MediaError): string {
             return "Permission denied"
         case "Cannot access video stream (NotReadableError).":
             return "Selected camera busy, try choosing another."
+        case "Cannot access video stream (NotFoundError).":
+            return "No Cameras Found."
         default:
             return "Unknown Error"
     }

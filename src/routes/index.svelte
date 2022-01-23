@@ -5,7 +5,6 @@
     let w;
     let mediaErrorMessage = "";
 
-    let cameraEnabled = false;
 
     function onQRScan(event: CustomEvent) {
         alert(event.detail.qrContent);
@@ -13,7 +12,6 @@
 </script>
 
 <div class="qr-container">
-    {#if cameraEnabled}
     <div class="qr-wrapper" bind:clientWidth={w}>
         <QR
             on:scan={onQRScan}
@@ -30,9 +28,6 @@
             </div>
         </QR>
     </div>
-    {:else}
-        <button on:click={()=>{navigator.mediaDevices.getUserMedia({ video: true }).then(()=>{cameraEnabled=true})}}>Enable Camera</button>
-    {/if}
 </div>
 
 <style lang="scss">
