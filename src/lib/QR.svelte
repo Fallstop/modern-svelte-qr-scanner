@@ -43,6 +43,9 @@ import GearIcon from "./icons/GearIcon.svelte";
 
 	export let mediaErrorMessage = "";
 
+	// Decides the style of the modal for the camera selection dialog.
+	export let smallModalXThreshold: number = 400;
+
 	let displayCameraSelectionDialog = false;
 
 	let camerasAvailable: Camera[] = [];
@@ -102,7 +105,11 @@ import GearIcon from "./icons/GearIcon.svelte";
 	}
 
 	function cameraStop() {
-		scanner.stop();
+		if (scanner) {
+			scanner.stop();
+		} else {
+			console.error("No scanner to stop");
+		}
 	}
 
 	onMount(() => {
@@ -153,7 +160,7 @@ import GearIcon from "./icons/GearIcon.svelte";
 		bind:displayCameraSelectionDialog
 		on:camera={cameraSelect}
 		bind:chosenCamera
-		previewWidth_px={previewWidth_px}
+		bind:smallModalXThreshold
 	/>
 
 	{#if !scannerInitialized}

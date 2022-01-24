@@ -61,15 +61,16 @@ Assuming you have a svelte/sveltekit app up and running, just paste in the follo
 
 ### Props (Options)
 
-| Prop               | Type    | Default | Read-only | Description                                                                                                                                                  |
-|--------------------|---------|---------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| scannerInitialized | boolean | false   | x         | Whether the QR code scanner has loaded yet.                                                                                                                  |
-| backgroundScan     | boolean | true    |           | Whether to actively scan when the tab is not active. When false, this reduces CPU usage when the tab is not active.                                          |
-| refractoryPeriod   | number  | 5000    |           | The period, in milliseconds, before the same QR code will be recognized in succession. Default 5000 (5 seconds).                                             |
-| scanPeriod         | number  | 1       |           | The period, in rendered frames, between scans. A lower scan period increases CPU usage but makes scan response faster. Default 1 (i.e. analyze every frame). |
-| previewWidth_px    | number  | 800     |           | The width of the video preview. Bind this value to the width of the parent to make the scanner responsive.                                                   |
-| previewHeight_px   | number  | 450     |           | The height of the video preview. Bind this value to the width of the parent / wanted_aspect_ratio to make the scanner responsive.                            |
-| mediaErrorMessage  | string  | ""      | x         | Human readable error message, updates when there is a new error. Useful displayed in the failedToInitialize slot.                                           |
+| Prop                 | Type    | Default | Read-only | Description                                                                                                                                                  |
+|----------------------|---------|---------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| scannerInitialized   | boolean | false   | x         | Whether the QR code scanner has loaded yet.                                                                                                                  |
+| backgroundScan       | boolean | true    |           | Whether to actively scan when the tab is not active. When false, this reduces CPU usage when the tab is not active.                                          |
+| refractoryPeriod     | number  | 5000    |           | The period, in milliseconds, before the same QR code will be recognized in succession. Default 5000 (5 seconds).                                             |
+| scanPeriod           | number  | 1       |           | The period, in rendered frames, between scans. A lower scan period increases CPU usage but makes scan response faster. Default 1 (i.e. analyze every frame). |
+| previewWidth_px      | number  | 800     |           | The width of the video preview. Bind this value to the width of the parent to make the scanner responsive.                                                   |
+| previewHeight_px     | number  | 450     |           | The height of the video preview. Bind this value to the width of the parent / wanted_aspect_ratio to make the scanner responsive.                            |
+| mediaErrorMessage    | string  | ""      | x         | Human readable error message, updates when there is a new error. Useful displayed in the failedToInitialize slot.                                            |
+| smallModalXThreshold | number  | 400     |           | The width threshold to move the camera selection from a traditional center of screen modal, to being pined to the top.                                       |
 
 ### Events
 
