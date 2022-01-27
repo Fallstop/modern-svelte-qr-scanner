@@ -98,14 +98,14 @@ class ScanProvider {
 }
 
 class Analyzer {
-  video: any;
+  video: HTMLVideoElement;
   imageBuffer: any;
-  sensorLeft: any;
-  sensorTop: any;
-  sensorWidth: any;
-  sensorHeight: any;
+  sensorLeft: number;
+  sensorTop: number;
+  sensorWidth: number;
+  sensorHeight: number;
   canvas: any = 'none';
-  canvasContext: any;
+  canvasContext: CanvasRenderingContext2D;
   decodeCallback: any;
   constructor(video) {
     this.video = video;
@@ -149,7 +149,8 @@ class Analyzer {
       this.canvas.height = this.sensorHeight;
 
       this.canvasContext = this.canvas.getContext('2d');
-      this.imageBuffer = ZXing._resize(this.sensorWidth, this.sensorHeight);
+      // this.imageBuffer = ZXing._resize(this.sensorWidth, this.sensorHeight);
+      this.imageBuffer = "yay!";
       return null;
     }
 
@@ -169,10 +170,13 @@ class Analyzer {
     let buffer = ZXing._malloc(data.length);
 		ZXing.HEAPU8.set(data, buffer);
 
-    let result = ZXing.readBarcode(buffer, data.length, true, "");
-
-    if (result != null) {
-      return { result: result, canvas: this.canvas };
+    let result = ZXing.readBarcodeFromPixmap(buffer, this.sensorWidth, this.sensorHeight, true, "");
+    console.log(result)
+    ZXing._free(buffer);
+    if (result.error) {
+      return null
+    } else if (result.text) {
+      return { result: result.text, canvas: this.canvas };
     }
 
     return null;
