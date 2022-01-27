@@ -1,5 +1,7 @@
 import ZXingModule from './zxing';
-const ZXing = ZXingModule();
+let ZXing = ZXingModule().then(function (instance) {
+  ZXing = instance;
+});
 import Visibility from 'visibilityjs';
 import {EventEmitter} from 'events'
 import StateMachine from "../fsm-as-promised/index"
@@ -28,7 +30,9 @@ class ScanProvider {
 
   start() {
     this._active = true;
+    
     requestAnimationFrame(() => this._scan());
+
   }
 
   stop() {
@@ -116,14 +120,15 @@ class Analyzer {
     this.canvas.style.display = 'none';
     this.canvasContext = null;
 
-    this.decodeCallback = ZXing.Runtime.addFunction(function (ptr, len, resultIndex, resultCount) {
-      let result = new Uint8Array(ZXing.HEAPU8.buffer, ptr, len);
-      let str = String.fromCharCode.apply(null, result);
-      if (resultIndex === 0) {
-        window.zxDecodeResult = '';
-      }
-      window.zxDecodeResult += str;
-    });
+    // this.decodeCallback = ZXing.Runtime.addFunction(function (ptr, len, resultIndex, resultCount) {
+    //   let result = new Uint8Array(ZXing.HEAPU8.buffer, ptr, len);
+    //   let str = String.fromCharCode.apply(null, result);
+    //   if (resultIndex === 0) {
+    //     window.zxDecodeResult = '';
+    //   }
+    //   window.zxDecodeResult += str;
+    // });
+    console.log("asdasd")
   }
 
   analyze() {
@@ -157,17 +162,15 @@ class Analyzer {
     );
 
     let data = this.canvasContext.getImageData(0, 0, this.sensorWidth, this.sensorHeight).data;
-    for (let i = 0, j = 0; i < data.length; i += 4, j++) {
-      let [r, g, b] = [data[i], data[i + 1], data[i + 2]];
-      ZXing.HEAPU8[this.imageBuffer + j] = Math.trunc((r + g + b) / 3);
-    }
+    // for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+    //   let [r, g, b] = [data[i], data[i + 1], data[i + 2]];
+    //   ZXing.HEAPU8[this.imageBuffer + j] = Math.trunc((r + g + b) / 3);
+    // }
+    let buffer = ZXing._malloc(data.length);
+		ZXing.HEAPU8.set(data, buffer);
 
-    let err = ZXing._decode_qr(this.decodeCallback);
-    if (err) {
-      return null;
-    }
+    let result = ZXing.readBarcode(buffer, data.length, true, "");
 
-    let result = window.zxDecodeResult;
     if (result != null) {
       return { result: result, canvas: this.canvas };
     }
