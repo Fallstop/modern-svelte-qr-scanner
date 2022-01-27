@@ -6,10 +6,19 @@
  */
 
 import { FsmError } from './fsm-error';
-import * as _ from 'lodash';
+import { clone, mapValues, includes, toArray, assign } from 'lodash';
 import { EventEmitter } from 'events';
 import { v4 } from 'uuid';
 import * as stampit from 'stampit';
+
+const defaults = (...args) =>
+  args.reverse().reduce((acc, obj) => ({ ...acc, ...obj }), {})
+
+const identity = a => a
+
+const size = item =>
+  item.constructor === Object ? Object.keys(item).length : item.length
+
 
 const AssignFirstArgumentStamp = stampit.compose({
   init: function init(opts: StateMachineConfiguration) {
@@ -139,7 +148,7 @@ const StateMachineStamp = stampit.compose<StateMachine>({
     noChoiceFound: 'no-choice',
     type: function type(options: { from: string; to: string }) {
       var Type = this.Type;
-      if (options.from === options.to || _.isUndefined(options.to)) {
+      if (options.from === options.to || typeof options.to === 'undefined') {
         return Type.NOOP;
       } else if (options.from === '*') {
         return Type.GENERAL;
@@ -152,14 +161,14 @@ const StateMachineStamp = stampit.compose<StateMachine>({
       GENERAL: 2,
     },
     isConditional: function isConditional(event: EventSpecification) {
-      return _.isFunction(event.condition) && _.isArray(event.to);
+      return typeof event.condition === "function" && Array.isArray(event.to);
     },
     pseudoEvent: function pseudoEvent(state: string, name: string) {
       return state + '--' + name;
     },
   },
   methods: {
-    emit: _.noop,
+    emit: () => undefined,
     error: function (msg, options) {
       if (this.target) {
         options.instanceId = this.target.instanceId();
@@ -195,8 +204,8 @@ const StateMachineStamp = stampit.compose<StateMachine>({
           }
           break;
         case Type.INTER:
-          if (_.size(this.states[this.current].noopTransitions) > 0) {
-            options.pending = _.clone(
+          if (size(this.states[this.current].noopTransitions) > 0) {
+            options.pending = clone(
               this.states[this.current].noopTransitions
             );
             this.error('Previous transition pending', options);
@@ -225,8 +234,8 @@ const StateMachineStamp = stampit.compose<StateMachine>({
     },
     isFinal: function isFinal(state) {
       state = state || this.current;
-      if (_.isArray(this.final)) {
-        return _.includes(this.final, state);
+      if (Array.isArray(this.final)) {
+        return includes(this.final, state);
       }
       return this.final === state;
     },
@@ -298,12 +307,9 @@ const StateMachineStamp = stampit.compose<StateMachine>({
 
     // configure methods
     addEvents: function addEvents(events) {
-      _.forEach(
-        events,
-        function (event: EventSpecification) {
-          this.addEvent(event);
-        }.bind(this)
-      );
+      events.foreach((event: EventSpecification) => {
+        this.addEvent(event);
+      })
     },
     addEvent: function addEvent(event: EventSpecification) {
       this.events[event.name] = this.events[event.name] || {};
@@ -315,17 +321,15 @@ const StateMachineStamp = stampit.compose<StateMachine>({
       this.addBasicEvent(event);
     },
     addBasicEvent: function addBasicEvent(event: EventSpecification) {
-      if (_.isArray(event.to)) {
+      if (Array.isArray(event.to)) {
         this.error('Ambigous transition', event);
       }
 
       event.from = [].concat(event.from || []);
 
-      _.forEach(
-        event.from,
-        function (from: string) {
-          this.events[event.name][from] = event.to || from;
-        }.bind(this)
+      event.from.forEach((from: string) => {
+        this.events[event.name][from] = event.to || from;
+      }
       );
     },
     addConditionalEvent: function addConditionalEvent(event) {
@@ -336,18 +340,16 @@ const StateMachineStamp = stampit.compose<StateMachine>({
       var pseudoEvent = factory.pseudoEvent;
       var Promise = factory.Promise;
 
-      if (_.isArray(event.from)) {
-        return _.forEach(
-          event.from,
-          function (from: string) {
-            this.addConditionalEvent({
-              name: event.name,
-              from: from,
-              to: event.to,
-              condition: event.condition,
-            });
-          }.bind(this)
-        );
+      if (Array.isArray(event.from)) {
+        return event.from.forEach((from: string) => {
+          this.addConditionalEvent({
+            name: event.name,
+            from: from,
+            to: event.to,
+            condition: event.condition,
+          });
+
+        });
       }
       pseudoState = event.from + '__' + event.name;
 
@@ -369,18 +371,17 @@ const StateMachineStamp = stampit.compose<StateMachine>({
 
       this.pseudoEvents[pseudoEvent(pseudoState, noChoiceFound)] = event.name;
 
-      _.forEach(
-        event.to,
-        function (toState: string) {
-          this.addEvent({
-            name: pseudoEvent(pseudoState, toState),
-            from: pseudoState,
-            to: toState,
-          });
+      event.to.forEach((toState: string) => {
+        this.addEvent({
+          name: pseudoEvent(pseudoState, toState),
+          from: pseudoState,
+          to: toState,
+        });
 
-          this.pseudoEvents[pseudoEvent(pseudoState, toState)] = event.name;
-        }.bind(this)
-      );
+        this.pseudoEvents[pseudoEvent(pseudoState, toState)] = event.name;
+
+      });
+
 
       this.callbacks[
         callbackPrefix + 'entered' + pseudoState
@@ -391,7 +392,7 @@ const StateMachineStamp = stampit.compose<StateMachine>({
         args: any[];
       }) {
         var target = this.target;
-        _.defaults(options, {
+        defaults(options, {
           args: [],
         });
 
@@ -401,12 +402,12 @@ const StateMachineStamp = stampit.compose<StateMachine>({
           function (index: number) {
             var toState;
 
-            if (_.isNumber(index)) {
+            if (typeof index === "number") {
               toState = event.to[index];
-            } else if (_.includes(event.to, index)) {
+            } else if (event.to.includes(index)) {
               toState = index;
             }
-            if (_.isUndefined(toState)) {
+            if (typeof toState === "undefined") {
               return target[pseudoEvent(pseudoState, noChoiceFound)]().then(
                 this.error.bind(this, 'Choice index out of range', event)
               );
@@ -481,7 +482,7 @@ const StateMachineStamp = stampit.compose<StateMachine>({
       var callbackPrefix = this.factory.callbackPrefix;
 
       return function triggerEvent() {
-        var args = _.toArray(arguments);
+        var args = toArray(arguments);
         var current = this.current;
         var target = this.target;
         var options: {
@@ -520,51 +521,51 @@ const StateMachineStamp = stampit.compose<StateMachine>({
             .then(
               callbacks[callbackPrefix + 'leave' + current]
                 ? callbacks[callbackPrefix + 'leave' + current].bind(
-                    target,
-                    options
-                  )
-                : _.identity
+                  target,
+                  options
+                )
+                : identity
             )
             .then(
               callbacks.onleave
                 ? callbacks.onleave.bind(target, options)
-                : _.identity
+                : identity
             )
             .then(this.onleavestate.bind(this, options))
             .then(
               callbacks[callbackPrefix + name]
                 ? callbacks[callbackPrefix + name].bind(target, options)
-                : _.identity
+                : identity
             )
             //in the case of the transition from choice pseudostate we provide
             // the options of the original transition
             .then(
               callbacks[callbackPrefix + 'enter' + events[name][current]]
                 ? callbacks[
-                    callbackPrefix + 'enter' + events[name][current]
-                  ].bind(target, isPseudo ? pOptions : options)
-                : _.identity
+                  callbackPrefix + 'enter' + events[name][current]
+                ].bind(target, isPseudo ? pOptions : options)
+                : identity
             )
             .then(
               callbacks.onenter && !pseudoStates[options.to]
                 ? callbacks.onenter.bind(target, isPseudo ? pOptions : options)
-                : _.identity
+                : identity
             )
             .then(this.onenterstate.bind(this, options))
             .then(
               callbacks[callbackPrefix + 'entered' + events[name][current]]
                 ? callbacks[
-                    callbackPrefix + 'entered' + events[name][current]
-                  ].bind(target, isPseudo ? pOptions : options)
-                : _.identity
+                  callbackPrefix + 'entered' + events[name][current]
+                ].bind(target, isPseudo ? pOptions : options)
+                : identity
             )
             .then(
               callbacks.onentered && !pseudoStates[options.to]
                 ? callbacks.onentered.bind(
-                    target,
-                    isPseudo ? pOptions : options
-                  )
-                : _.identity
+                  target,
+                  isPseudo ? pOptions : options
+                )
+                : identity
             )
             .then(this.returnValue.bind(this, options))
             .catch(this.revert(options).bind(this))
@@ -575,24 +576,24 @@ const StateMachineStamp = stampit.compose<StateMachine>({
       var mixin;
       const id = v4();
 
-      if (!_.isObject(target)) {
+      if (!(typeof target === "object")) {
         target = new EventEmitter();
       }
 
-      if (_.isFunction(target.emit)) {
+      if (typeof target.emit === "function") {
         this.emit = function emit() {
           return target.emit.apply(target, arguments);
         };
       }
 
-      mixin = _.mapValues(
+      mixin = mapValues(
         this.events,
         function (event: EventSpecification, name: string) {
           return this.buildEvent(name);
         }.bind(this)
       );
 
-      _.assign(target, mixin, {
+      assign(target, mixin, {
         can: this.can.bind(this),
         cannot: this.cannot.bind(this),
         is: this.is.bind(this),
@@ -622,23 +623,20 @@ const StateMachineStamp = stampit.compose<StateMachine>({
 
     var events = this.events;
     this.events = {};
-    _.forEach(
-      events,
-      function (event: EventSpecification, name: string) {
-        if (_.isString(name)) {
-          event.name = name;
-        }
+    events.forEach((event: EventSpecification, name: string) => {
+      if (typeof name === "string") {
+        event.name = name;
+      }
 
-        this.addEvent(event);
+      this.addEvent(event);
 
-        //NOTE: Add states
-        this.addState(event.from);
-        this.addState(event.to);
-      }.bind(this)
-    );
+      //NOTE: Add states
+      this.addState(event.from);
+      this.addState(event.to);
+
+    });
 
     this.current = this.initial;
-    // return this.initTarget(_.first(context.args));
     const target = this.initTarget(args[1]);
 
     return target;

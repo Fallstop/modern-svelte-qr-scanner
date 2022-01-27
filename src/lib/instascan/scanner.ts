@@ -1,5 +1,7 @@
 import ZXingModule from './zxing';
-const ZXing = ZXingModule();
+let ZXing = ZXingModule().then(function (instance) {
+  ZXing = instance;
+});
 import Visibility from 'visibilityjs';
 import {EventEmitter} from 'events'
 import StateMachine from "../fsm-as-promised/index"
@@ -28,7 +30,9 @@ class ScanProvider {
 
   start() {
     this._active = true;
+    
     requestAnimationFrame(() => this._scan());
+
   }
 
   stop() {
@@ -94,14 +98,14 @@ class ScanProvider {
 }
 
 class Analyzer {
-  video: any;
+  video: HTMLVideoElement;
   imageBuffer: any;
-  sensorLeft: any;
-  sensorTop: any;
-  sensorWidth: any;
-  sensorHeight: any;
+  sensorLeft: number;
+  sensorTop: number;
+  sensorWidth: number;
+  sensorHeight: number;
   canvas: any = 'none';
-  canvasContext: any;
+  canvasContext: CanvasRenderingContext2D;
   decodeCallback: any;
   constructor(video) {
     this.video = video;
@@ -116,14 +120,15 @@ class Analyzer {
     this.canvas.style.display = 'none';
     this.canvasContext = null;
 
-    this.decodeCallback = ZXing.Runtime.addFunction(function (ptr, len, resultIndex, resultCount) {
-      let result = new Uint8Array(ZXing.HEAPU8.buffer, ptr, len);
-      let str = String.fromCharCode.apply(null, result);
-      if (resultIndex === 0) {
-        window.zxDecodeResult = '';
-      }
-      window.zxDecodeResult += str;
-    });
+    // this.decodeCallback = ZXing.Runtime.addFunction(function (ptr, len, resultIndex, resultCount) {
+    //   let result = new Uint8Array(ZXing.HEAPU8.buffer, ptr, len);
+    //   let str = String.fromCharCode.apply(null, result);
+    //   if (resultIndex === 0) {
+    //     window.zxDecodeResult = '';
+    //   }
+    //   window.zxDecodeResult += str;
+    // });
+    console.log("asdasd")
   }
 
   analyze() {
@@ -144,7 +149,8 @@ class Analyzer {
       this.canvas.height = this.sensorHeight;
 
       this.canvasContext = this.canvas.getContext('2d');
-      this.imageBuffer = ZXing._resize(this.sensorWidth, this.sensorHeight);
+      // this.imageBuffer = ZXing._resize(this.sensorWidth, this.sensorHeight);
+      this.imageBuffer = "yay!";
       return null;
     }
 
@@ -157,19 +163,20 @@ class Analyzer {
     );
 
     let data = this.canvasContext.getImageData(0, 0, this.sensorWidth, this.sensorHeight).data;
-    for (let i = 0, j = 0; i < data.length; i += 4, j++) {
-      let [r, g, b] = [data[i], data[i + 1], data[i + 2]];
-      ZXing.HEAPU8[this.imageBuffer + j] = Math.trunc((r + g + b) / 3);
-    }
+    // for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+    //   let [r, g, b] = [data[i], data[i + 1], data[i + 2]];
+    //   ZXing.HEAPU8[this.imageBuffer + j] = Math.trunc((r + g + b) / 3);
+    // }
+    let buffer = ZXing._malloc(data.length);
+		ZXing.HEAPU8.set(data, buffer);
 
-    let err = ZXing._decode_qr(this.decodeCallback);
-    if (err) {
-      return null;
-    }
-
-    let result = window.zxDecodeResult;
-    if (result != null) {
-      return { result: result, canvas: this.canvas };
+    let result = ZXing.readBarcodeFromPixmap(buffer, this.sensorWidth, this.sensorHeight, true, "");
+    console.log(result)
+    ZXing._free(buffer);
+    if (result.error) {
+      return null
+    } else if (result.text) {
+      return { result: result.text, canvas: this.canvas };
     }
 
     return null;

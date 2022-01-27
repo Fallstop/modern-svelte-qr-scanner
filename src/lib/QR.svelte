@@ -67,17 +67,23 @@ import GearIcon from "./icons/GearIcon.svelte";
 			Instascan.Camera.setMediaErrorCallback(createMediaError);
 			console.log("Initalising Camera")
 			camerasAvailable = await Instascan.Camera.getCameras();
+			console.log("Get Camera")
+
 			if (camerasAvailable.length > 0) {
 				// When permissions are denied, it creates a fake camera
 				if (camerasAvailable[0].name === null) {
 					return
 				}
+				console.log("Choosing Camera")
+
+
 				camerasInitialized = true;
 				[chosenCamera, mirror] = chooseCamera(
 					camerasAvailable,
 					selectedCameraID
 				);
 				chosenCamera.aspectRatio = cameraAspectRatio;
+				console.log("New scanner")
 				scanner = new Instascan.Scanner({
 					video: document.getElementById("cam-preview"),
 					continuous,
@@ -96,6 +102,7 @@ import GearIcon from "./icons/GearIcon.svelte";
 				scanner.addListener("active", function () {
 					scannerInitialized = true;
 				});
+				console.log("starting scanner")
 				let stream = await scanner.start(chosenCamera);
 			} else {
 				camerasInitialized = false;
