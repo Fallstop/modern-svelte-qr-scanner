@@ -1,3 +1,6 @@
+import wasmBinaryURL from './wasmBinary.wasm?url';
+var wasmBinaryFile = wasmBinaryURL;
+
 var ZXing = (function () {
   var _scriptDir = typeof document !== "undefined" && document.currentScript ? document.currentScript.src : undefined;
 
@@ -388,7 +391,6 @@ var ZXing = (function () {
       function isDataURI(filename) {
           return filename.startsWith(dataURIPrefix);
       }
-      var wasmBinaryFile = "zxing_reader.wasm";
       if (!isDataURI(wasmBinaryFile)) {
           wasmBinaryFile = locateFile(wasmBinaryFile);
       }
