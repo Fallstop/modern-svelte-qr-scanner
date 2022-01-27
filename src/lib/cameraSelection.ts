@@ -6,7 +6,7 @@ export enum CameraDirection {
 }
 
 export function chooseCamera(cameras: Camera[], selectedCameraID: string): [Camera,boolean] {
-    let chosenCamera;
+    let chosenCamera: Camera;
     if (typeof selectedCameraID === "undefined") {
         chosenCamera = selectDefault(cameras);
         console.log(

@@ -18,7 +18,7 @@ export class Camera {
   id: any;
   name: string;
   aspectRatio: number;
-  _stream: any;
+  _stream: MediaStream;
 
   constructor(id, name) {
     this.id = id;

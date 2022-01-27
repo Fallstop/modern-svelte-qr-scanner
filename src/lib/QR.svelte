@@ -53,6 +53,8 @@ import GearIcon from "./icons/GearIcon.svelte";
 
 	let scanner;
 
+	let videoPreviewElm: HTMLVideoElement;
+	let videoPreviewStyleTags: string = "";
 
 	let chosenCamera: Camera;
 	let mirror: boolean;
@@ -82,10 +84,11 @@ import GearIcon from "./icons/GearIcon.svelte";
 					camerasAvailable,
 					selectedCameraID
 				);
+				
 				chosenCamera.aspectRatio = cameraAspectRatio;
 				console.log("New scanner")
 				scanner = new Instascan.Scanner({
-					video: document.getElementById("cam-preview"),
+					video: videoPreviewElm,
 					continuous,
 					mirror,
 					captureImage,
@@ -142,6 +145,14 @@ import GearIcon from "./icons/GearIcon.svelte";
 		camerasInitialized = false;
 		scannerInitialized = true;
 	}
+
+	function updateVideoAspectRatio() {
+		videoPreviewStyleTags = (videoPreviewElm?.videoWidth || 0) < (videoPreviewElm?.videoHeight) || 0
+			? "width: var(--previewWidth);"
+			: "height: var(--previewHeight);"
+	}
+
+	setInterval(updateVideoAspectRatio, 100);
 </script>
 
 <div
@@ -151,10 +162,9 @@ import GearIcon from "./icons/GearIcon.svelte";
 	<!-- svelte-ignore a11y-media-has-caption -->
 	<video
 		id="cam-preview"
+		bind:this={videoPreviewElm}
 		hidden={!scannerInitialized || !camerasInitialized}
-		style={previewWidth_px <= previewHeight_px
-			? "width: var(--previewWidth);"
-			: "height: var(--previewHeight);"}
+		style={videoPreviewStyleTags}
 	/>
 	{#if scannerInitialized}
 		<button class="floating-action-button" on:click={onSettingsClick}>
