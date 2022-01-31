@@ -25,7 +25,6 @@ export class Camera {
     this.name = name;
     this.aspectRatio = 1;
     this._stream = null;
-    console.log("creating camera")
   }
 
   async start() {
@@ -62,9 +61,7 @@ export class Camera {
   }
 
   static async getCameras() {
-    console.log("Ensuring Access")
     await this._ensureAccess();
-    console.log("getting cameras")
     let devices = await navigator.mediaDevices.enumerateDevices();
     return devices
       .filter(d => d.kind === 'videoinput')
@@ -73,15 +70,18 @@ export class Camera {
 
   static async _ensureAccess() {
     return await this._wrapErrors(async () => {
-      console.log("yeeta")
 
       let access = await navigator.mediaDevices.getUserMedia({ video: true });
-      console.log("yeet")
 
         for (let stream of access.getVideoTracks()) {
 
           stream.stop();
         }
+
+      // https://stackoverflow.com/a/69468263
+      // Firefox requires getting media devices after stopping all streams
+      await navigator.mediaDevices.getUserMedia({ video: true });
+
     });
   }
   

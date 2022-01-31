@@ -16,7 +16,6 @@ export function chooseCamera(cameras: Camera[], selectedCameraID: string): [Came
         cameras.forEach((camera) => {
             if (camera.id === selectedCameraID) {
                 chosenCamera = camera;
-                console.log("Found camera", camera.id);
             }
         });
         if (typeof chosenCamera === "undefined") {

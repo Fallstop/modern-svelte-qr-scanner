@@ -1,14 +1,15 @@
 {
   "name": "modern-svelte-qr-scanner",
   "license": "MIT",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "scripts": {
     "dev": "svelte-kit dev",
     "build": "svelte-kit package",
     "package": "svelte-kit package",
     "build:demo": "svelte-kit build",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch"
+    "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
+    "preview": "svelte-kit preview"
   },
   "devDependencies": {
     "@sveltejs/kit": "^1.0.0-next.245",
@@ -28,5 +29,6 @@
   },
   "type": "module",
   "main": "./index.js",
-  "peerDependencies": {}
+  "peerDependencies": {},
+  "dependencies": {}
 }

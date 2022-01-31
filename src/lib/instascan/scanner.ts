@@ -1,10 +1,7 @@
-import ZXingModule from './zxing';
-let ZXing = ZXingModule().then(function (instance) {
-  ZXing = instance;
-});
 import Visibility from 'visibilityjs';
 import {EventEmitter} from 'events'
 import StateMachine from "../fsm-as-promised/index"
+import { scanData } from './scanAdapter';
 
 class ScanProvider {
   scanPeriod: any;
@@ -31,7 +28,7 @@ class ScanProvider {
   start() {
     this._active = true;
     
-    requestAnimationFrame(() => this._scan());
+    setTimeout(() => {this._scan()}, 0);
 
   }
 
@@ -39,12 +36,12 @@ class ScanProvider {
     this._active = false;
   }
 
-  scan() {
-    return this._analyze(false);
+  async scan() {
+    return await this._analyze(false);
   }
 
-  _analyze(skipDups) {
-    let analysis = this._analyzer.analyze();
+  async _analyze(skipDups): Promise<{content: { result: string,error: string}, image?: string}> {
+    let analysis: {result: { result: string,error: string}, canvas: HTMLCanvasElement} = await this._analyzer.analyze();
     if (!analysis) {
       return null;
     }
@@ -69,31 +66,33 @@ class ScanProvider {
 
     let payload = { content: result };
     if (image) {
-      payload.image = image;
+      payload["image"] = image;
     }
 
     return payload;
   }
 
-  _scan() {
-    if (!this._active) {
-      return;
+  async _scan() {
+    while (true) {
+      if (!this._active) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      if (++this._frameCount !== this.scanPeriod) {
+        return;
+      } else {
+        this._frameCount = 0;
+      }
+  
+      let result = await this._analyze(true);
+      if (result) {
+        setTimeout(() => {
+          this._emitter.emit('scan', result.content, result.image || null);
+        }, 0);
+      }
+
     }
 
-    requestAnimationFrame(() => this._scan());
-
-    if (++this._frameCount !== this.scanPeriod) {
-      return;
-    } else {
-      this._frameCount = 0;
-    }
-
-    let result = this._analyze(true);
-    if (result) {
-      setTimeout(() => {
-        this._emitter.emit('scan', result.content, result.image || null);
-      }, 0);
-    }
   }
 }
 
@@ -119,19 +118,9 @@ class Analyzer {
     this.canvas = document.createElement('canvas');
     this.canvas.style.display = 'none';
     this.canvasContext = null;
-
-    // this.decodeCallback = ZXing.Runtime.addFunction(function (ptr, len, resultIndex, resultCount) {
-    //   let result = new Uint8Array(ZXing.HEAPU8.buffer, ptr, len);
-    //   let str = String.fromCharCode.apply(null, result);
-    //   if (resultIndex === 0) {
-    //     window.zxDecodeResult = '';
-    //   }
-    //   window.zxDecodeResult += str;
-    // });
-    console.log("asdasd")
   }
 
-  analyze() {
+  async analyze() {
     if (!this.video.videoWidth) {
       return null;
     }
@@ -163,23 +152,9 @@ class Analyzer {
     );
 
     let data = this.canvasContext.getImageData(0, 0, this.sensorWidth, this.sensorHeight).data;
-    // for (let i = 0, j = 0; i < data.length; i += 4, j++) {
-    //   let [r, g, b] = [data[i], data[i + 1], data[i + 2]];
-    //   ZXing.HEAPU8[this.imageBuffer + j] = Math.trunc((r + g + b) / 3);
-    // }
-    let buffer = ZXing._malloc(data.length);
-		ZXing.HEAPU8.set(data, buffer);
 
-    let result = ZXing.readBarcodeFromPixmap(buffer, this.sensorWidth, this.sensorHeight, true, "");
-    console.log(result)
-    ZXing._free(buffer);
-    if (result.error) {
-      return null
-    } else if (result.text) {
-      return { result: result.text, canvas: this.canvas };
-    }
+    return {...await scanData(data, this.sensorWidth, this.sensorHeight), canvas: this.canvas}
 
-    return null;
   }
 }
 

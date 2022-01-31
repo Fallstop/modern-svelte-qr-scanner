@@ -67,16 +67,14 @@ import GearIcon from "./icons/GearIcon.svelte";
 		if (browser && camerasPermState) {
 			const { Instascan } = await import("./instascan/index");
 			Instascan.Camera.setMediaErrorCallback(createMediaError);
-			console.log("Initalising Camera")
 			camerasAvailable = await Instascan.Camera.getCameras();
-			console.log("Get Camera")
 
 			if (camerasAvailable.length > 0) {
+				
 				// When permissions are denied, it creates a fake camera
 				if (camerasAvailable[0].name === null) {
 					return
 				}
-				console.log("Choosing Camera")
 
 
 				camerasInitialized = true;
@@ -86,7 +84,6 @@ import GearIcon from "./icons/GearIcon.svelte";
 				);
 				
 				chosenCamera.aspectRatio = cameraAspectRatio;
-				console.log("New scanner")
 				scanner = new Instascan.Scanner({
 					video: videoPreviewElm,
 					continuous,
@@ -97,7 +94,6 @@ import GearIcon from "./icons/GearIcon.svelte";
 					scanPeriod,
 				});
 				scanner.addListener("scan", function (qrContent: string) {
-					console.log("Scanned QR Code");
 					dispatch("scan", {
 						qrContent,
 					});
@@ -105,7 +101,6 @@ import GearIcon from "./icons/GearIcon.svelte";
 				scanner.addListener("active", function () {
 					scannerInitialized = true;
 				});
-				console.log("starting scanner")
 				let stream = await scanner.start(chosenCamera);
 			} else {
 				camerasInitialized = false;
