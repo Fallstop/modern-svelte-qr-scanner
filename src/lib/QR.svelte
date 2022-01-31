@@ -11,6 +11,8 @@
 	import type { Camera } from "./instascan/camera";
 	import {mediaErrorToMessage} from "$lib/mapErrorToHumanMessage"
 import GearIcon from "./icons/GearIcon.svelte";
+import { testCapabilities } from "./capabilty";
+import type { Instascan } from "./instascan/index";
 
 	const dispatch = createEventDispatcher();
 
@@ -60,11 +62,13 @@ import GearIcon from "./icons/GearIcon.svelte";
 	let mirror: boolean;
 
 	async function cameraStart() {
-		const camerasPermState = (
-			await navigator?.permissions?.query({ name: "geolocation" })
-		)?.state;
+		let capabilities = await testCapabilities();
+		if (capabilities) {
+			createMediaError(capabilities);
+			return;
+		}
 
-		if (browser && camerasPermState) {
+		if (browser) {
 			const { Instascan } = await import("./instascan/index");
 			Instascan.Camera.setMediaErrorCallback(createMediaError);
 			camerasAvailable = await Instascan.Camera.getCameras();
@@ -82,6 +86,7 @@ import GearIcon from "./icons/GearIcon.svelte";
 					camerasAvailable,
 					selectedCameraID
 				);
+
 				
 				chosenCamera.aspectRatio = cameraAspectRatio;
 				scanner = new Instascan.Scanner({
@@ -101,6 +106,7 @@ import GearIcon from "./icons/GearIcon.svelte";
 				scanner.addListener("active", function () {
 					scannerInitialized = true;
 				});
+				console.log("Camera chosen")
 				let stream = await scanner.start(chosenCamera);
 			} else {
 				camerasInitialized = false;
@@ -135,7 +141,7 @@ import GearIcon from "./icons/GearIcon.svelte";
 		displayCameraSelectionDialog = false;
 	}
 
-	function createMediaError(err) {
+	function createMediaError(err: Error) {
 		mediaErrorMessage = mediaErrorToMessage(err);
 		camerasInitialized = false;
 		scannerInitialized = true;
@@ -163,7 +169,7 @@ import GearIcon from "./icons/GearIcon.svelte";
 	/>
 	{#if scannerInitialized}
 		<button class="floating-action-button" on:click={onSettingsClick}>
-			<GearIcon/>
+			<GearIcon />
 		</button>
 	{/if}
 
