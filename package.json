@@ -12,6 +12,7 @@
     "preview": "svelte-kit preview"
   },
   "devDependencies": {
+    "@sveltejs/adapter-cloudflare": "^1.0.0-next.9",
     "@sveltejs/kit": "^1.0.0-next.245",
     "events": "^3.3.0",
     "lodash": "^4.17.21",
