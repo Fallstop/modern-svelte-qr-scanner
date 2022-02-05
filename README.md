@@ -96,3 +96,38 @@ To create a production version of the library, simply run the `package` script:
 ```bash
 yarn package
 ```
+
+## Known Errors
+1. svelte-select not being included
+For some reason, sometimes you might have to install `svelte-select` manually with a fresh project.
+
+fix:
+```bash
+yarn add modern-svelte-qr-scanner -D             # if you are using yarn
+npm install modern-svelte-qr-scanner --save-dev  # if you are using npm
+```
+
+2. Library's requiring bundling
+When using SvelteKit, you must include some of the older library's in the optimizeDeps option.
+
+fix: Add them to the your `svelte.config.js`.
+```js
+const config = {
+  ...,
+  kit: {
+     ...,
+     vite: {
+       ...,
+      optimizeDeps: {
+        include: [
+          "events",
+          "uuid",
+          "visibilityjs",
+          "stampit",
+          "lodash",
+        ]
+      },
+     }
+  },
+};
+```

@@ -1,4 +1,4 @@
-import wasmBinaryURL from './wasmBinary.wasm?url';
+import wasmBinaryURL from './xzingBinary.wasm?url';
 var wasmBinaryFile = wasmBinaryURL;
 
 var ZXing = (function () {
