@@ -1,7 +1,7 @@
 {
   "name": "modern-svelte-qr-scanner",
   "license": "MIT",
-  "version": "1.6.0",
+  "version": "1.3.1",
   "scripts": {
     "dev": "svelte-kit dev",
     "build": "svelte-kit package",
@@ -14,6 +14,7 @@
   "devDependencies": {
     "@sveltejs/adapter-cloudflare": "^1.0.0-next.9",
     "@sveltejs/kit": "^next",
+    "jsqr": "^1.4.0",
     "svelte": "^3.46.4",
     "svelte-check": "^2.4.2",
     "svelte-preprocess": "^4.9.4",

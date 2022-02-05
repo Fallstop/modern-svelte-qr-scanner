@@ -1,23 +1,11 @@
-import ZXingModule from './zxing';
-let ZXing = ZXingModule({}).then(function (instance) {
-  ZXing = instance;
-});
+import jsQR from 'jsqr';
  
 self.addEventListener("message", e => {
     const {data, width, height} = e.data as DataInput;
 
-    if (ZXing != null) {
-        var buffer = ZXing._malloc(data.byteLength);
-        ZXing.HEAPU8.set(data, buffer);
-        var result = ZXing.readBarcodeFromPixmap(buffer, width, height, true, "");
-        ZXing._free(buffer);
+    var result = jsQR(data, width, height);
 
-        self.postMessage(result.text || null);
-
-    } else {
-        console.log("ZXing is not loaded")
-        self.postMessage(null);
-    }
+    self.postMessage(result?.data || null);
 });
 
 export interface DataInput {
