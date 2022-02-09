@@ -103,8 +103,8 @@ For some reason, sometimes you might have to install `svelte-select` manually wi
 
 fix:
 ```bash
-yarn add modern-svelte-qr-scanner -D             # if you are using yarn
-npm install modern-svelte-qr-scanner --save-dev  # if you are using npm
+yarn add svelte-select -D             # if you are using yarn
+npm install svelte-select --save-dev  # if you are using npm
 ```
 
 2. Library's requiring bundling

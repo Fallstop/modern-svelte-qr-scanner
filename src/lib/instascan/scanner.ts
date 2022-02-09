@@ -13,8 +13,9 @@ class ScanProvider {
   _analyzer: any;
   _lastResult: any;
   _active: any;
+  _video: HTMLVideoElement;
 
-  constructor(emitter, analyzer, captureImage, scanPeriod, refractoryPeriod) {
+  constructor(emitter, analyzer, captureImage, scanPeriod, refractoryPeriod, videoElm: HTMLVideoElement) {
     this.scanPeriod = scanPeriod;
     this.captureImage = captureImage;
     this.refractoryPeriod = refractoryPeriod;
@@ -23,6 +24,7 @@ class ScanProvider {
     this._analyzer = analyzer;
     this._lastResult = null;
     this._active = false;
+    this._video = videoElm;
   }
 
   start() {
@@ -74,8 +76,10 @@ class ScanProvider {
 
   async _scan() {
     while (true) {
-      if (!this._active) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+      if (!this._active || !this._video.videoWidth) {
+        // Camera feed not loaded yet
+        await new Promise(resolve => setTimeout(resolve, 250));
+        continue;
       }
 
       if (++this._frameCount !== this.scanPeriod) {
@@ -90,7 +94,6 @@ class ScanProvider {
           this._emitter.emit('scan', result.content, result.image || null);
         }, 0);
       }
-
     }
 
   }
@@ -98,7 +101,7 @@ class ScanProvider {
 
 class Analyzer {
   video: HTMLVideoElement;
-  imageBuffer: any;
+  imageDetailsLoaded: any;
   sensorLeft: number;
   sensorTop: number;
   sensorWidth: number;
@@ -106,10 +109,10 @@ class Analyzer {
   canvas: any = 'none';
   canvasContext: CanvasRenderingContext2D;
   decodeCallback: any;
+  
   constructor(video) {
     this.video = video;
 
-    this.imageBuffer = null;
     this.sensorLeft = null;
     this.sensorTop = null;
     this.sensorWidth = null;
@@ -117,31 +120,25 @@ class Analyzer {
 
     this.canvas = document.createElement('canvas');
     this.canvas.style.display = 'none';
-    this.canvasContext = null;
+    this.canvasContext = this.canvas.getContext('2d');
   }
 
   async analyze() {
     if (!this.video.videoWidth) {
+      // video not loaded yet
       return null;
     }
 
-    if (!this.imageBuffer) {
-      let videoWidth = this.video.videoWidth;
-      let videoHeight = this.video.videoHeight;
+    let videoWidth = this.video.videoWidth;
+    let videoHeight = this.video.videoHeight;
 
-      this.sensorWidth = videoWidth;
-      this.sensorHeight = videoHeight;
-      this.sensorLeft = Math.floor((videoWidth / 2) - (this.sensorWidth / 2));
-      this.sensorTop = Math.floor((videoHeight / 2) - (this.sensorHeight / 2));
+    this.sensorWidth = videoWidth;
+    this.sensorHeight = videoHeight;
+    this.sensorLeft = Math.floor((videoWidth / 2) - (this.sensorWidth / 2));
+    this.sensorTop = Math.floor((videoHeight / 2) - (this.sensorHeight / 2));
 
-      this.canvas.width = this.sensorWidth;
-      this.canvas.height = this.sensorHeight;
-
-      this.canvasContext = this.canvas.getContext('2d');
-      // this.imageBuffer = ZXing._resize(this.sensorWidth, this.sensorHeight);
-      this.imageBuffer = "yay!";
-      return null;
-    }
+    this.canvas.width = this.sensorWidth;
+    this.canvas.height = this.sensorHeight;
 
     this.canvasContext.drawImage(
       this.video,
@@ -183,7 +180,7 @@ export class Scanner extends EventEmitter {
     let scanPeriod = opts.scanPeriod || 1;
     let refractoryPeriod = opts.refractoryPeriod || (5 * 1000);
 
-    this._scanner = new ScanProvider(this, this._analyzer, captureImage, scanPeriod, refractoryPeriod);
+    this._scanner = new ScanProvider(this, this._analyzer, captureImage, scanPeriod, refractoryPeriod, this.video);
 
     Visibility.change((e, state) => {
       if (state === 'visible') {
