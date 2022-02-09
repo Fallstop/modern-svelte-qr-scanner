@@ -107,8 +107,8 @@ For some reason, sometimes you might have to install `svelte-select` manually wi
 
 fix:
 ```bash
-yarn add svelte-select -D             # if you are using yarn
-npm install svelte-select --save-dev  # if you are using npm
+yarn add svelte-select jsqr -D             # if you are using yarn
+npm install svelte-select jsqr --save-dev  # if you are using npm
 ```
 
 2. Library's requiring bundling
