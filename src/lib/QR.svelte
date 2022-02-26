@@ -82,7 +82,10 @@ import type { Instascan } from "./instascan/index";
 
 
 				camerasInitialized = true;
-				[chosenCamera, mirror] = chooseCamera(
+
+				let currentCameraMirrorStatus
+
+				[chosenCamera, currentCameraMirrorStatus] = chooseCamera(
 					camerasAvailable,
 					selectedCameraID
 				);
@@ -92,7 +95,7 @@ import type { Instascan } from "./instascan/index";
 				scanner = new Instascan.Scanner({
 					video: videoPreviewElm,
 					continuous,
-					mirror,
+					mirror: currentCameraMirrorStatus,
 					captureImage,
 					backgroundScan,
 					refractoryPeriod,
@@ -148,9 +151,18 @@ import type { Instascan } from "./instascan/index";
 	}
 
 	function updateVideoAspectRatio() {
-		videoPreviewStyleTags = (videoPreviewElm?.videoWidth || 0) < (videoPreviewElm?.videoHeight) || 0
-			? "width: var(--previewWidth);"
-			: "height: var(--previewHeight);"
+		videoPreviewStyleTags = `
+			${
+				(videoPreviewElm?.videoWidth || 0) < (videoPreviewElm?.videoHeight) || 0
+				? "width: var(--previewWidth);"
+				: "height: var(--previewHeight);"
+			}
+			${
+				mirror ?
+				"--mirror-enabled: -1" : "--mirror-enabled: 1"
+			}
+
+		`
 	}
 
 	setInterval(updateVideoAspectRatio, 100);
@@ -179,6 +191,7 @@ import type { Instascan } from "./instascan/index";
 		on:camera={cameraSelect}
 		bind:chosenCamera
 		bind:smallModalXThreshold
+		bind:mirrorCamera={mirror}
 	/>
 
 	{#if !scannerInitialized}
@@ -204,6 +217,10 @@ import type { Instascan } from "./instascan/index";
 
 		#cam-preview {
 			background: #222222;
+			margin-left: 50%;
+			transform: translateX(-50%) scaleX(var(--mirror-enabled));
+
+
 		}
 		.floating-action-button {
 			position: absolute;

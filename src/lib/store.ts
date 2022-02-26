@@ -2,7 +2,9 @@
 const NAMESPACE = "MSQrScanner__";
 
 export function saveValue(key: string, value: any) {
-    localStorage.setItem(NAMESPACE+key,JSON.stringify(value))
+    if (typeof localStorage!=="undefined"){
+        localStorage.setItem(NAMESPACE+key,JSON.stringify(value))
+    }
 }
 
 export function getValue(key: string): any {

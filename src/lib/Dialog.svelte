@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
     import { fly, fade } from "svelte/transition";
     import Select from "svelte-select";
 
@@ -11,9 +11,13 @@
 
     import type { Camera } from "$lib/instascan/camera";
     import CloseIcon from "./icons/CloseIcon.svelte";
-    import { bind } from "svelte/internal";
+    import { getValue, saveValue } from "./store";
+    import Switch from "./Switch.svelte";
 
     const dispatch = createEventDispatcher();
+
+    export let mirrorCamera = getValue("mirrorCamera") || false;
+    $: saveValue("mirrorCamera", mirrorCamera);
 
     export let camerasAvailable: Camera[];
 
@@ -47,11 +51,10 @@
                 value: camera.id,
             }));
         } else {
-            return camerasAvailable
-                .map((camera) => ({
-                    label: camera.name,
-                    value: camera.id,
-                }));
+            return camerasAvailable.map((camera) => ({
+                label: camera.name,
+                value: camera.id,
+            }));
         }
     }
 
@@ -84,10 +87,13 @@
             </div>
             <h3>Select a camera</h3>
             <!-- Container to inject style vars for svelte-select -->
-            <div style="
+            <div
+                class="svelte-select-container"
+                style="
                 --listMaxHeight: {previewHeight_px / 2}px;
                 --inputPadding: 0;
-                ">
+                "
+            >
                 <Select
                     items={getUserCameraList(camerasAvailable)}
                     on:select={cameraSelect}
@@ -97,6 +103,12 @@
                     listAutoWidth={false}
                     noOptionsMessage="No cameras found"
                 />
+            </div>
+
+            <div class="mirror-input">
+                <div class:selected={!mirrorCamera}>Don't Mirror</div>
+                <div class="always-display"><Switch bind:checked={mirrorCamera} /></div>
+                <div class="always-display key" class:selected={mirrorCamera}>Mirror Camera</div>
             </div>
         </div>
     </div>
@@ -136,14 +148,10 @@
                 margin: 0 0.2rem 0;
                 font-size: 1.2rem;
             }
-
-            .camera-container {
-                border: none;
-                display: block;
-                background-color: #eeeeee;
-                font-size: 0.9rem;
-                cursor: pointer;
+            .svelte-select-container {
+                margin-bottom: 0.4rem;
             }
+
             .close-icon {
                 position: absolute;
                 top: 0.5em;
@@ -152,6 +160,45 @@
                 transition: all 0.1s ease-in-out;
                 &:hover {
                     filter: drop-shadow(0 0 0.5rem #000);
+                }
+            }
+
+            .mirror-input {
+                margin-top: 0.5rem;
+                display: grid;
+                grid-template-columns: 1fr 0.5fr 1fr;
+
+                $transition-size: 300px;
+
+                div {
+                    color: grey;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    text-align: center;
+
+                    &.selected {
+                        color: rgb(31, 31, 31);
+                        font-weight: 700;
+
+                    }
+
+                }
+                @media (max-width: $transition-size) {
+                    grid-template-columns: 1fr 0.5fr;
+                    div {
+                        display: none;
+                        color: rgb(31, 31, 31);
+
+                        &.always-display {
+                            &.key {
+                                grid-row: 1;
+                                grid-column: 1;
+                            }
+                            display: initial;
+                        }
+                    }
+
                 }
             }
         }
