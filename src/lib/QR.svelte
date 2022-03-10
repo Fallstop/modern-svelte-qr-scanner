@@ -63,6 +63,7 @@ import type { Instascan } from "./instascan/index";
 
 	async function cameraStart() {
 		let capabilities = await testCapabilities();
+
 		if (capabilities) {
 			createMediaError(capabilities);
 			return;

@@ -6,7 +6,7 @@ import { Camera,MediaError } from "./camera";
 // URL Imports within a webworker don't actually include
 // the resource in the production build.
 // So we can force the inclusion like so:
-import wasmBinaryURL from '../webWorker/xzingBinary.wasm?url';
+import wasmBinaryURL from '../zxingWebWorker/xzingBinary.wasm?url';
 
 export const Instascan = {
     Scanner: Scanner,

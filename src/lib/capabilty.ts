@@ -1,4 +1,10 @@
+import { browser } from "$app/env";
+
 export async function testCapabilities(): Promise<Error> {
+    if (!browser) {
+        return null;
+    }
+
     try {
         // Only chrome and old firefox support this
         //@ts-ignore
@@ -27,4 +33,16 @@ export async function testCapabilities(): Promise<Error> {
     }
     
     return null
+}
+
+export async function testNativeBarcodeReader() {
+    if (!browser) {
+        return null;
+    }
+    
+    if ("BarcodeDetector" in window) {
+        const supportedFormats = await BarcodeDetector.getSupportedFormats();
+        return supportedFormats.includes("qr_code")
+    }
+    return false
 }

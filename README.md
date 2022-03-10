@@ -5,6 +5,10 @@ This is a work-in-progress component library to enable QR-code scanning.
 
 This is based on `instascan`, and is designed as a more batteries included version of [QRScanner](https://github.com/Pedroglp/svelte-qr-scanner). It has the source of `instascan` and `fsm-as-promised` bundled inside, as they both have modifications to work with Svelte.
 
+## Barcode Scanning Engine
+
+This library tries to use the [Barcode Detection API](https://developer.mozilla.org/en-US/docs/Web/API/Barcode_Detection_API) for native performance, but the support is [lack-luster](https://developer.mozilla.org/en-US/docs/Web/API/Barcode_Detection_API#browser_compatibility) to say the least (only really stabilized on android phones). So we also load a backup library, `Zxing`, which is a WASM implementation of the QR-code scanning algorithm. ZXing is also a bit slower than the native API, but it's a lot more likely to be supported.
+
 
 ## Install
 Just open your project and use the command line to install:

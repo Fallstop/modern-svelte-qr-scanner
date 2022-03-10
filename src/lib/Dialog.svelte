@@ -13,6 +13,7 @@
     import CloseIcon from "./icons/CloseIcon.svelte";
     import { getValue, saveValue } from "./store";
     import Switch from "./Switch.svelte";
+import { barcodeEngine } from "./instascan/scanAdapter";
 
     const dispatch = createEventDispatcher();
 
@@ -110,6 +111,9 @@
                 <div class="always-display"><Switch bind:checked={mirrorCamera} /></div>
                 <div class="always-display key" class:selected={mirrorCamera}>Mirror Camera</div>
             </div>
+            {#if $barcodeEngine !== null}
+                <div class="barcode-engine">Barcode Engine: <code>{$barcodeEngine}</code></div>
+            {/if}
         </div>
     </div>
 {/if}
@@ -199,6 +203,15 @@
                         }
                     }
 
+                }
+            }
+            .barcode-engine {
+                margin-top: 0.5rem;
+                code {
+                    background-color: #eee;
+                    padding: 0.1rem;
+                    border-radius: 0.2rem;
+                    font-size: inherit;
                 }
             }
         }
