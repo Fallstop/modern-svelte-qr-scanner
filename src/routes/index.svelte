@@ -2,7 +2,7 @@
     import QR from "$lib/index";
     import "../global.scss";
 
-    let w;
+    let w: number;
     let mediaErrorMessage = "";
 
 

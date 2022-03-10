@@ -1,4 +1,4 @@
-let barcodeDetector = null;
+let barcodeDetector: BarcodeDetector = null;
 BarcodeDetector.getSupportedFormats().then((formats)=>{
     barcodeDetector = new BarcodeDetector({formats});
 });

@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from "svelte";
+    import { createEventDispatcher } from "svelte";
     import { fly, fade } from "svelte/transition";
     import Select from "svelte-select";
+    
 
     import {
         detectMobileCameras,
@@ -10,10 +11,13 @@
     } from "$lib/cameraSelection";
 
     import type { Camera } from "$lib/instascan/camera";
+    import { barcodeEngine } from "./instascan/scanAdapter";
+    
+
     import CloseIcon from "./icons/CloseIcon.svelte";
     import { getValue, saveValue } from "./store";
     import Switch from "./Switch.svelte";
-import { barcodeEngine } from "./instascan/scanAdapter";
+
 
     const dispatch = createEventDispatcher();
 
@@ -32,10 +36,8 @@ import { barcodeEngine } from "./instascan/scanAdapter";
 
     $: compactMode = previewWidth_px <= smallModalXThreshold;
 
-    const cameraSelectCallback: CallableFunction = (id: string) =>
-        cameraSelect(id);
 
-    function cameraSelect(event) {
+    function cameraSelect(event: { detail: { value: string; }; }) {
         let id = event.detail.value;
         dispatch("camera", {
             id,

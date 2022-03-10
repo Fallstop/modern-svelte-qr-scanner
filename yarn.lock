@@ -616,9 +616,9 @@ sander@^0.5.0:
     rimraf "^2.5.2"
 
 sass@^1.49.7:
-  version "1.49.7"
-  resolved "https://registry.yarnpkg.com/sass/-/sass-1.49.7.tgz#22a86a50552b9b11f71404dfad1b9ff44c6b0c49"
-  integrity sha512-13dml55EMIR2rS4d/RDHHP0sXMY3+30e1TKsyXaSz3iLWVoDWEoboY8WzJd5JMnxrRHffKO3wq2mpJ0jxRJiEQ==
+  version "1.49.9"
+  resolved "https://registry.yarnpkg.com/sass/-/sass-1.49.9.tgz#b15a189ecb0ca9e24634bae5d1ebc191809712f9"
+  integrity sha512-YlYWkkHP9fbwaFRZQRXgDi3mXZShslVmmo+FVK3kHLUELHHEYrCmL1x6IUjC7wLS6VuJSAFXRQS/DxdsC4xL1A==
   dependencies:
     chokidar ">=3.0.0 <4.0.0"
     immutable "^4.0.0"
@@ -704,9 +704,9 @@ svelte-select@^4.4.4:
   integrity sha512-fIf9Z8rPI6F8naHZ9wjXT0Pv5gLyhdHAFkHFJnCfVVfELE8e82uOoF0xEVQP6Kir+b4Q5yOvNAzZ61WbSU6A0A==
 
 svelte2tsx@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.5.2.tgz#abe9e6212f333c371df3813f1d7fcf9de393c776"
-  integrity sha512-d9TzGleVLoVDdTdTWblKKg+xTMmgDznraYyj9eFTHiGAr6u2mgsyklIIa0e/hVVElzWUanRw0msl1zpmQFZAZg==
+  version "0.5.5"
+  resolved "https://registry.yarnpkg.com/svelte2tsx/-/svelte2tsx-0.5.5.tgz#44d2593935b8a1d193ff1d047b96018b1798a088"
+  integrity sha512-5n8jP721bM3vXPk36AM9diZg2aasLvsfP/Zt9CQVrcqcnzexOYVeS8kpGk+3mofOPvPvXnOCLdff62usI/KOMw==
   dependencies:
     dedent-js "^1.0.1"
     pascal-case "^3.1.1"

@@ -15,12 +15,12 @@ export class MediaError extends Error {
 }
 
 export class Camera {
-  id: any;
+  id: string;
   name: string;
   aspectRatio: number;
   _stream: MediaStream;
 
-  constructor(id, name) {
+  constructor(id: string, name: string) {
     this.id = id;
     this.name = name;
     this.aspectRatio = 1;

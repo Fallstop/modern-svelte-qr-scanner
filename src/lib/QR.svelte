@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Scanner } from "./instascan/scanner";
 	import { onMount } from "svelte";
 	import { browser } from "$app/env";
 	import { fade } from "svelte/transition";
@@ -10,9 +11,8 @@
 	import { chooseCamera } from "$lib/cameraSelection";
 	import type { Camera } from "./instascan/camera";
 	import {mediaErrorToMessage} from "$lib/mapErrorToHumanMessage"
-import GearIcon from "./icons/GearIcon.svelte";
-import { testCapabilities } from "./capabilty";
-import type { Instascan } from "./instascan/index";
+	import GearIcon from "./icons/GearIcon.svelte";
+	import { testCapabilities } from "./capabilty";
 
 	const dispatch = createEventDispatcher();
 
@@ -53,7 +53,7 @@ import type { Instascan } from "./instascan/index";
 	let camerasAvailable: Camera[] = [];
 	let selectedCameraID: string = getValue("selectedCameraID");
 
-	let scanner;
+	let scanner: Scanner;
 
 	let videoPreviewElm: HTMLVideoElement;
 	let videoPreviewStyleTags: string = "";
@@ -84,7 +84,7 @@ import type { Instascan } from "./instascan/index";
 
 				camerasInitialized = true;
 
-				let currentCameraMirrorStatus
+				let currentCameraMirrorStatus: boolean
 
 				[chosenCamera, currentCameraMirrorStatus] = chooseCamera(
 					camerasAvailable,
@@ -111,7 +111,7 @@ import type { Instascan } from "./instascan/index";
 					scannerInitialized = true;
 				});
 				console.log("Camera chosen")
-				let stream = await scanner.start(chosenCamera);
+				await scanner.start(chosenCamera);
 			} else {
 				camerasInitialized = false;
 				console.error("No cameras found.");
