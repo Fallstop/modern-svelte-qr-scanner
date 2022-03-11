@@ -1,8 +1,8 @@
 // Possible Workers
-import zxing_qrScannerWebWorker from '../zxingWebWorker/qrScannerWebWorker?worker';
-import native_qrScannerWebWorker from '../nativeWebWorker/qrScannerWebWorker?worker';
+import jsqr_qrScannerWebWorker from '$lib/jsqrWebWorker/qrScannerWebWorker?worker';
+import native_qrScannerWebWorker from '$lib/nativeWebWorker/qrScannerWebWorker?worker';
 
-import type { DataInput } from "$lib/zxingWebWorker/qrScannerWebWorker";
+import type { DataInput } from "$lib/jsqrWebWorker/qrScannerWebWorker";
 import { testNativeBarcodeReader } from '$lib/capabilty';
 import { writable } from 'svelte/store';
 import type {Writable } from 'svelte/store';
@@ -10,7 +10,7 @@ import type {Writable } from 'svelte/store';
 import { browser } from '$app/env';
 let worker: Worker | null = null;
 
-export let barcodeEngine: Writable<"zxing" | "native" | null> = writable(null);
+export let barcodeEngine: Writable<"jsqr" | "native" | null> = writable(null);
 
 testNativeBarcodeReader().then((nativeBarcodeReaderSupported)=>{
     if (!browser) {
@@ -22,10 +22,9 @@ testNativeBarcodeReader().then((nativeBarcodeReaderSupported)=>{
         console.log("Scanning with native barcode reader");
         barcodeEngine.set("native");
     } else {
-        // why must the web be like this?
-        worker = new zxing_qrScannerWebWorker();
-        console.log("Scanning with ZXING Barcode Reader");
-        barcodeEngine.set("zxing");
+        worker = new jsqr_qrScannerWebWorker();
+        console.log("Scanning with jsQR Barcode Reader");
+        barcodeEngine.set("jsqr");
     }
 })
 
