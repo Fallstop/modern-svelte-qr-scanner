@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
     import { fly, fade } from "svelte/transition";
     import Select from "svelte-select";
     
-
+    
     import {
         detectMobileCameras,
         CameraDirection,
@@ -17,6 +17,7 @@
     import CloseIcon from "./icons/CloseIcon.svelte";
     import { getValue, saveValue } from "./store";
     import Switch from "./Switch.svelte";
+    import { get, Writable } from "svelte/store";
 
 
     const dispatch = createEventDispatcher();
@@ -28,23 +29,28 @@
 
     export let displayCameraSelectionDialog: boolean;
 
-    export let chosenCamera: Camera;
     export let smallModalXThreshold: number;
+    export let selectedCameraID: Writable<string>;
 
     let previewWidth_px: number;
     let previewHeight_px: number;
 
     $: compactMode = previewWidth_px <= smallModalXThreshold;
 
+    interface CameraSelection {
+        value: string;
+        label: string;
+    }
 
-    function cameraSelect(event: { detail: { value: string; }; }) {
+    function cameraSelect(event: { detail: { value: string; label: string; }; }) {
         let id = event.detail.value;
         dispatch("camera", {
             id,
         });
+        selectedCamera = event.detail;
     }
 
-    function getUserCameraList(camerasAvailable: Camera[]) {
+    function getUserCameraList(camerasAvailable: Camera[]): CameraSelection[] {
         if (detectMobileCameras(camerasAvailable)) {
             return camerasAvailable.map((camera) => ({
                 label:
@@ -65,10 +71,18 @@
         displayCameraSelectionDialog = false;
     }
 
-    $: selectedCamera = {
-        value: chosenCamera?.id,
-        label: chosenCamera?.name || "",
-    };
+    let selectedCamera: CameraSelection;
+
+    onMount(()=>{
+        let label = getUserCameraList(camerasAvailable).filter(camera => {
+            return camera.value === get(selectedCameraID);
+        })[0]?.label || "Unknown";
+
+        selectedCamera = {
+            value: get(selectedCameraID),
+            label,
+        };
+    });
 </script>
 
 {#if displayCameraSelectionDialog}
