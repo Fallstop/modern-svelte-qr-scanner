@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { Scanner } from "./instascan/scanner";
-	import { onMount } from "svelte";
+	import { onDestroy, onMount } from "svelte";
 	import { browser } from "$app/env";
 	import { fade } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
@@ -13,6 +13,7 @@
 	import {mediaErrorToMessage} from "$lib/mapErrorToHumanMessage"
 	import GearIcon from "./icons/GearIcon.svelte";
 	import { testCapabilities } from "./capabilty";
+import { derived, get, Unsubscriber, Writable, writable } from "svelte/store";
 
 	const dispatch = createEventDispatcher();
 
@@ -51,17 +52,42 @@
 	let displayCameraSelectionDialog = false;
 
 	let camerasAvailable: Camera[] = [];
-	let selectedCameraID: string = getValue("selectedCameraID");
+	let selectedCameraID: Writable<string> = writable(getValue("selectedCameraID"));
 
 	let scanner: Scanner;
 
 	let videoPreviewElm: HTMLVideoElement;
 	let videoPreviewStyleTags: string = "";
 
-	let chosenCamera: Camera;
+	let Instascan: typeof import("./instascan/index").Instascan;
+
+	async function updateCamera(_selectedCameraID: string) {
+		if (!browser || !Instascan) {
+			return null;
+		}
+		scannerInitialized = false;
+		
+		camerasAvailable = await Instascan.Camera.getCameras();
+		console.log(camerasAvailable);
+		// When permissions are denied, it creates a fake camera
+		if (!camerasAvailable || camerasAvailable.length === 0 || camerasAvailable[0].name === null) {
+			return null
+		}
+		let [newChosenCamera, currentCameraMirrorStatus] = chooseCamera(
+			camerasAvailable,
+			_selectedCameraID
+		);
+		newChosenCamera.aspectRatio = cameraAspectRatio;
+
+
+		if (scanner) {
+			await cameraStop();
+		}
+		await cameraStart(newChosenCamera, currentCameraMirrorStatus);
+	}
 	let mirror: boolean;
 
-	async function cameraStart() {
+	async function cameraStart(camera: Camera, currentCameraMirrorStatus: boolean) {
 		let capabilities = await testCapabilities();
 
 		if (capabilities) {
@@ -70,29 +96,9 @@
 		}
 
 		if (browser) {
-			const { Instascan } = await import("./instascan/index");
-			Instascan.Camera.setMediaErrorCallback(createMediaError);
-			camerasAvailable = await Instascan.Camera.getCameras();
+			
 
-			if (camerasAvailable.length > 0) {
-				
-				// When permissions are denied, it creates a fake camera
-				if (camerasAvailable[0].name === null) {
-					return
-				}
-
-
-				camerasInitialized = true;
-
-				let currentCameraMirrorStatus: boolean
-
-				[chosenCamera, currentCameraMirrorStatus] = chooseCamera(
-					camerasAvailable,
-					selectedCameraID
-				);
-
-				
-				chosenCamera.aspectRatio = cameraAspectRatio;
+			if (camera) {
 				scanner = new Instascan.Scanner({
 					video: videoPreviewElm,
 					continuous,
@@ -102,6 +108,8 @@
 					refractoryPeriod,
 					scanPeriod,
 				});
+				camerasInitialized = true;
+
 				scanner.addListener("scan", function (qrContent: string) {
 					dispatch("scan", {
 						qrContent,
@@ -111,7 +119,7 @@
 					scannerInitialized = true;
 				});
 				console.log("Camera chosen")
-				await scanner.start(chosenCamera);
+				await scanner.start(camera);
 			} else {
 				camerasInitialized = false;
 				console.error("No cameras found.");
@@ -119,17 +127,35 @@
 		}
 	}
 
-	function cameraStop() {
+	async function cameraStop() {
 		if (scanner) {
-			scanner.stop();
+			await scanner.stop();
 		} else {
 			console.error("No scanner to stop");
 		}
 	}
 
-	onMount(() => {
+	let selectedCameraUnsubscriber: Unsubscriber;
+
+	onMount(async () => {
 		if (browser) {
-			cameraStart();
+			({ Instascan } = await import("./instascan/index"));
+			Instascan.Camera.setMediaErrorCallback(createMediaError);
+
+			selectedCameraUnsubscriber = selectedCameraID.subscribe(async (newSelectedCameraID) => {
+				updateCamera(newSelectedCameraID);
+			});
+		}
+	});
+	onDestroy(async () => {
+		if (browser) {
+			if (selectedCameraUnsubscriber) {
+				selectedCameraUnsubscriber();
+			}
+			if (scanner) {
+				await cameraStop();
+			}
+
 		}
 	});
 
@@ -138,10 +164,9 @@
 	}
 
 	function cameraSelect(event: CustomEvent) {
-		cameraStop();
-		cameraStart();
-		selectedCameraID = event.detail.id;
-		saveValue("selectedCameraID", selectedCameraID);
+		console.log("Camera select event")
+		selectedCameraID.set(event.detail.id as string);
+		saveValue("selectedCameraID", event.detail.id);
 		displayCameraSelectionDialog = false;
 	}
 
@@ -167,6 +192,7 @@
 	}
 
 	setInterval(updateVideoAspectRatio, 100);
+
 </script>
 
 <div
@@ -190,9 +216,9 @@
 		bind:camerasAvailable
 		bind:displayCameraSelectionDialog
 		on:camera={cameraSelect}
-		bind:chosenCamera
 		bind:smallModalXThreshold
 		bind:mirrorCamera={mirror}
+		bind:selectedCameraID
 	/>
 
 	{#if !scannerInitialized}
