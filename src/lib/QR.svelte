@@ -205,6 +205,9 @@ import { derived, get, Unsubscriber, Writable, writable } from "svelte/store";
 		bind:this={videoPreviewElm}
 		hidden={!scannerInitialized || !camerasInitialized}
 		style={videoPreviewStyleTags}
+		autoplay
+		muted
+		playsinline
 	/>
 	{#if scannerInitialized}
 		<button class="floating-action-button" on:click={onSettingsClick}>

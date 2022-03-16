@@ -31,13 +31,7 @@ export class Camera {
     let constraints = {
       audio: false,
       video: {
-        mandatory: {
-          sourceId: this.id,
-          minWidth: 600,
-          maxWidth: 1920,
-          minAspectRatio: this.aspectRatio
-        },
-        optional: []
+        deviceId: this.id,
       }
     };
 
