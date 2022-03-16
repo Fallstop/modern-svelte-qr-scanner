@@ -2,6 +2,7 @@ import Visibility from 'visibilityjs';
 import {EventEmitter} from 'events'
 import StateMachine from "../fsm-as-promised/index"
 import { scanData } from './scanAdapter';
+import type { Camera } from './camera';
 
 class ScanProvider {
   scanPeriod: any;
@@ -160,9 +161,9 @@ export class Scanner extends EventEmitter {
   backgroundScan: any;
   _continuous: any;
   _analyzer: any;
-  _camera: any;
+  _camera: Camera;
   _scanner: any;
-  _mirror: any;
+  _mirror: boolean;
   _fsm: any;
 
 
@@ -213,7 +214,7 @@ export class Scanner extends EventEmitter {
     return this._scanner.scan();
   }
 
-  async start(camera = null) {
+  async start(camera: Camera = null) {
     this._fsm = await this._createStateMachine();
     if (this._fsm.can('start')) {
       await this._fsm.start(camera);
@@ -291,13 +292,14 @@ export class Scanner extends EventEmitter {
     return this._mirror;
   }
 
-  async _enableScan(camera) {
+  async _enableScan(camera: Camera) {
     this._camera = camera || this._camera;
     if (!this._camera) {
       throw new Error('Camera is not defined.');
     }
 
     let stream = await this._camera.start();
+    console.log("new Camera Stream",stream, ", Camera:", this._camera);
     this.video.srcObject = stream;
 
     if (this._continuous) {
@@ -363,7 +365,7 @@ export class Scanner extends EventEmitter {
         }
       ],
       callbacks: {
-        onenteractive: async (options) => {
+        onenteractive: async (options: { args: any[]; }) => {
           await this._enableScan(options.args[0]);
           this.emit('active');
         },

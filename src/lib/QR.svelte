@@ -96,7 +96,7 @@ import { derived, get, Unsubscriber, Writable, writable } from "svelte/store";
 		}
 
 		if (browser) {
-			
+			console.log("Starting With Camera",camera)
 
 			if (camera) {
 				scanner = new Instascan.Scanner({
@@ -205,6 +205,9 @@ import { derived, get, Unsubscriber, Writable, writable } from "svelte/store";
 		bind:this={videoPreviewElm}
 		hidden={!scannerInitialized || !camerasInitialized}
 		style={videoPreviewStyleTags}
+		autoplay
+		muted
+		playsinline
 	/>
 	{#if scannerInitialized}
 		<button class="floating-action-button" on:click={onSettingsClick}>
