@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Scanner } from "./instascan/scanner";
 	import { onDestroy, onMount } from "svelte";
-	import { browser } from "$app/env";
+	import { browser } from "$app/environment";
 	import { fade } from "svelte/transition";
 	import { createEventDispatcher } from "svelte";
 
@@ -10,10 +10,11 @@
 	import { saveValue, getValue } from "$lib/store";
 	import { chooseCamera } from "$lib/cameraSelection";
 	import type { Camera } from "./instascan/camera";
-	import {mediaErrorToMessage} from "$lib/mapErrorToHumanMessage"
+	import { mediaErrorToMessage } from "$lib/mapErrorToHumanMessage"
 	import GearIcon from "./icons/GearIcon.svelte";
 	import { testCapabilities } from "./capabilty";
-import { derived, get, Unsubscriber, Writable, writable } from "svelte/store";
+	import type { Writable, Unsubscriber } from 'svelte/store'
+	import { derived, get, writable } from "svelte/store";
 
 	const dispatch = createEventDispatcher();
 
@@ -66,7 +67,7 @@ import { derived, get, Unsubscriber, Writable, writable } from "svelte/store";
 			return null;
 		}
 		scannerInitialized = false;
-		
+
 		camerasAvailable = await Instascan.Camera.getCameras();
 		console.log(camerasAvailable);
 		// When permissions are denied, it creates a fake camera
@@ -187,12 +188,10 @@ import { derived, get, Unsubscriber, Writable, writable } from "svelte/store";
 				mirror ?
 				"--mirror-enabled: -1" : "--mirror-enabled: 1"
 			}
-
 		`
 	}
 
 	setInterval(updateVideoAspectRatio, 100);
-
 </script>
 
 <div

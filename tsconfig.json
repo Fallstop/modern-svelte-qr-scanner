@@ -1,6 +1,7 @@
 {
+	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
-		"moduleResolution": "node",
+		"moduleResolution": "nodeNext",
 		"module": "es2020",
 		"lib": ["es2020", "DOM"],
 		"target": "es2020",
@@ -16,6 +17,7 @@
 			enable source maps by default.
 			*/
 		"sourceMap": true,
+		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,

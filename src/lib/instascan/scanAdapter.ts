@@ -4,10 +4,10 @@ import native_qrScannerWebWorker from '../nativeWebWorker/qrScannerWebWorker?wor
 
 import type { DataInput } from "$lib/zxingWebWorker/qrScannerWebWorker";
 import { testNativeBarcodeReader } from '$lib/capabilty';
+import type { Writable } from 'svelte/store';
 import { writable } from 'svelte/store';
-import type {Writable } from 'svelte/store';
 
-import { browser } from '$app/env';
+import { browser } from '$app/environment';
 let worker: Worker | null = null;
 
 export let barcodeEngine: Writable<"zxing" | "native" | null> = writable(null);
