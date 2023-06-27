@@ -1,4 +1,4 @@
-import { browser } from "$app/env";
+import { browser } from "$app/environment";
 
 export async function testCapabilities(): Promise<Error> {
     if (!browser) {
